@@ -1,7 +1,6 @@
--- 唐脚本 v5.0（完整版：通用 | MM2 | Peta | 飞行 | 甩飞 | 僵尸塔 | 简介）
--- 控制图标：黑色背景 + 彩虹描边 + “唐”字 + 可自由拖动（无边界限制）
--- 主窗口完全透明，内部控件半透明暗色框，文字黑色
--- 启动动画保留
+-- 唐脚本 v5.0（完整整合版）
+-- 功能：通用 | MM2 | Peta | 飞行 | 甩飞 | 僵尸塔 | 森林·99夜 | 简介
+-- 窗口控制：右上角 — + × | 点击—缩小到左上角标题栏 | 点击+展开
 
 repeat task.wait() until game:IsLoaded()
 
@@ -11,7 +10,7 @@ local runService = game:GetService("RunService")
 local tweenService = game:GetService("TweenService")
 
 -- ============================================================
---  启动动画（彩虹文字 + 小方块旋转环 + 百分比进度）
+--  启动动画
 -- ============================================================
 local splashGui = Instance.new("ScreenGui")
 splashGui.Name = "SplashScreen"
@@ -25,7 +24,6 @@ container.Position = UDim2.new(0.5, -210, 0.5, -120)
 container.BackgroundTransparency = 1
 container.Parent = splashGui
 
--- 小方块旋转环
 local ringContainer = Instance.new("Frame")
 ringContainer.Size = UDim2.new(0, 300, 0, 300)
 ringContainer.Position = UDim2.new(0.5, -150, 0.5, -150)
@@ -33,134 +31,68 @@ ringContainer.BackgroundTransparency = 1
 ringContainer.ZIndex = 0
 ringContainer.Parent = container
 
-local blockCount = 20
-local radius = 120
-local blocks = {}
-local blockColors = {
-    Color3.fromRGB(255, 255, 255),
-    Color3.fromRGB(200, 230, 255),
-    Color3.fromRGB(180, 210, 255),
-}
-
-for i = 1, blockCount do
-    local angle = (i - 1) / blockCount * 2 * math.pi
-    local x = radius * math.cos(angle)
-    local y = radius * math.sin(angle)
-
+local blockCount, radius = 20, 120
+local blocks, blockColors = {}, {Color3.fromRGB(255,255,255), Color3.fromRGB(200,230,255), Color3.fromRGB(180,210,255)}
+for i=1, blockCount do
+    local angle = (i-1)/blockCount*2*math.pi
+    local x, y = radius*math.cos(angle), radius*math.sin(angle)
     local block = Instance.new("Frame")
-    block.Size = UDim2.new(0, 12, 0, 12)
-    block.Position = UDim2.new(0.5, x - 6, 0.5, y - 6)
-    block.BackgroundColor3 = blockColors[(i % 3) + 1]
-    block.BackgroundTransparency = 0.2
+    block.Size, block.Position, block.BackgroundColor3, block.BackgroundTransparency = UDim2.new(0,12,0,12), UDim2.new(0.5,x-6,0.5,y-6), blockColors[(i%3)+1], 0.2
     block.BorderSizePixel = 0
     block.ZIndex = 0
     block.Parent = ringContainer
-
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 3)
-    corner.Parent = block
-
+    local corner = Instance.new("UICorner"); corner.CornerRadius = UDim.new(0,3); corner.Parent = block
     block:SetAttribute("Angle", angle)
     table.insert(blocks, block)
 end
 
--- 外圈光晕环
-local outerBlocks = {}
-for i = 1, 16 do
-    local angle = (i - 1) / 16 * 2 * math.pi + 0.3
-    local x = (radius + 25) * math.cos(angle)
-    local y = (radius + 25) * math.sin(angle)
-
+local outerBlocks, innerBlocks = {}, {}
+for i=1,16 do
+    local angle = (i-1)/16*2*math.pi + 0.3
+    local x,y = (radius+25)*math.cos(angle), (radius+25)*math.sin(angle)
     local block = Instance.new("Frame")
-    block.Size = UDim2.new(0, 6, 0, 6)
-    block.Position = UDim2.new(0.5, x - 3, 0.5, y - 3)
-    block.BackgroundColor3 = Color3.fromRGB(150, 200, 255)
-    block.BackgroundTransparency = 0.7
+    block.Size, block.Position, block.BackgroundColor3, block.BackgroundTransparency = UDim2.new(0,6,0,6), UDim2.new(0.5,x-3,0.5,y-3), Color3.fromRGB(150,200,255), 0.7
     block.BorderSizePixel = 0
     block.ZIndex = 0
     block.Parent = ringContainer
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 2)
-    corner.Parent = block
+    local corner = Instance.new("UICorner"); corner.CornerRadius = UDim.new(0,2); corner.Parent = block
     table.insert(outerBlocks, block)
 end
-
--- 内圈光晕
-local innerBlocks = {}
-for i = 1, 12 do
-    local angle = (i - 1) / 12 * 2 * math.pi + 0.6
-    local x = (radius - 30) * math.cos(angle)
-    local y = (radius - 30) * math.sin(angle)
-
+for i=1,12 do
+    local angle = (i-1)/12*2*math.pi + 0.6
+    local x,y = (radius-30)*math.cos(angle), (radius-30)*math.sin(angle)
     local block = Instance.new("Frame")
-    block.Size = UDim2.new(0, 4, 0, 4)
-    block.Position = UDim2.new(0.5, x - 2, 0.5, y - 2)
-    block.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    block.BackgroundTransparency = 0.8
+    block.Size, block.Position, block.BackgroundColor3, block.BackgroundTransparency = UDim2.new(0,4,0,4), UDim2.new(0.5,x-2,0.5,y-2), Color3.fromRGB(255,255,255), 0.8
     block.BorderSizePixel = 0
     block.ZIndex = 0
     block.Parent = ringContainer
     table.insert(innerBlocks, block)
 end
 
--- 百分比进度显示
 local percentLabel = Instance.new("TextLabel")
-percentLabel.Size = UDim2.new(0, 120, 0, 50)
-percentLabel.Position = UDim2.new(0.5, -60, 0.5, 30)
-percentLabel.BackgroundTransparency = 1
-percentLabel.Text = "0%"
-percentLabel.TextColor3 = Color3.fromRGB(0, 0, 0)
-percentLabel.TextSize = 36
-percentLabel.Font = Enum.Font.GothamBold
-percentLabel.TextStrokeColor3 = Color3.fromRGB(255, 255, 255)
-percentLabel.TextStrokeTransparency = 0.3
+percentLabel.Size, percentLabel.Position, percentLabel.BackgroundTransparency, percentLabel.Text = UDim2.new(0,120,0,50), UDim2.new(0.5,-60,0.5,30), 1, "0%"
+percentLabel.TextColor3, percentLabel.TextSize, percentLabel.Font, percentLabel.TextStrokeColor3, percentLabel.TextStrokeTransparency = Color3.fromRGB(255,255,255), 36, Enum.Font.GothamBold, Color3.fromRGB(0,0,0), 0.3
 percentLabel.Parent = container
 
 local progressBar = Instance.new("Frame")
-progressBar.Size = UDim2.new(0, 200, 0, 4)
-progressBar.Position = UDim2.new(0.5, -100, 0.5, 75)
-progressBar.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
-progressBar.BorderSizePixel = 0
+progressBar.Size, progressBar.Position, progressBar.BackgroundColor3, progressBar.BorderSizePixel = UDim2.new(0,200,0,4), UDim2.new(0.5,-100,0.5,75), Color3.fromRGB(60,60,80), 0
 progressBar.Parent = container
-local barCorner = Instance.new("UICorner")
-barCorner.CornerRadius = UDim.new(1, 0)
-barCorner.Parent = progressBar
-
+local barCorner = Instance.new("UICorner"); barCorner.CornerRadius = UDim.new(1,0); barCorner.Parent = progressBar
 local fill = Instance.new("Frame")
-fill.Size = UDim2.new(0, 0, 1, 0)
-fill.BackgroundColor3 = Color3.fromRGB(100, 200, 255)
-fill.BorderSizePixel = 0
+fill.Size, fill.BackgroundColor3, fill.BorderSizePixel = UDim2.new(0,0,1,0), Color3.fromRGB(100,200,255), 0
 fill.Parent = progressBar
-local fillCorner = Instance.new("UICorner")
-fillCorner.CornerRadius = UDim.new(1, 0)
-fillCorner.Parent = fill
+local fillCorner = Instance.new("UICorner"); fillCorner.CornerRadius = UDim.new(1,0); fillCorner.Parent = fill
 
--- 四个字母 (T A N G)
-local letters = {"T", "A", "N", "G"}
-local labels = {}
-local hueOffsets = {0, 0.15, 0.30, 0.45}
-
+local letters, labels, hueOffsets = {"T","A","N","G"}, {}, {0,0.15,0.30,0.45}
 for i, char in ipairs(letters) do
     local lbl = Instance.new("TextLabel")
-    lbl.Size = UDim2.new(0, 80, 0, 100)
-    lbl.Position = UDim2.new(0, (i-1)*100 + 30, 0, 55)
-    lbl.BackgroundTransparency = 1
-    lbl.Text = char
-    lbl.TextColor3 = Color3.fromHSV((i-1)/4, 1, 1)
-    lbl.TextSize = 80
-    lbl.Font = Enum.Font.GothamBold
-    lbl.TextScaled = true
-    lbl.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-    lbl.TextStrokeTransparency = 0
-    lbl.TextTransparency = 0
+    lbl.Size, lbl.Position, lbl.BackgroundTransparency, lbl.Text = UDim2.new(0,80,0,100), UDim2.new(0,(i-1)*100+30,0,55), 1, char
+    lbl.TextColor3, lbl.TextSize, lbl.Font, lbl.TextScaled, lbl.TextStrokeColor3, lbl.TextStrokeTransparency, lbl.TextTransparency = Color3.fromHSV((i-1)/4,1,1), 80, Enum.Font.GothamBold, true, Color3.fromRGB(0,0,0), 0, 0
     lbl.Parent = container
     table.insert(labels, lbl)
 end
 
--- 启动动画控制变量
 local running = true
-
--- 颜色循环
 task.spawn(function()
     local t = 0
     while running do
@@ -172,16 +104,12 @@ task.spawn(function()
         task.wait(0.03)
     end
 end)
-
--- 主环旋转
 task.spawn(function()
     while running do
         ringContainer.Rotation = (ringContainer.Rotation + 1.8) % 360
         task.wait(0.02)
     end
 end)
-
--- 方块呼吸
 task.spawn(function()
     local time = 0
     while running do
@@ -199,11 +127,8 @@ task.spawn(function()
         task.wait(0.05)
     end
 end)
-
--- 百分比进度更新
 task.spawn(function()
-    local duration = 3.5
-    local startTime = tick()
+    local duration, startTime = 3.5, tick()
     while running do
         local elapsed = tick() - startTime
         local progress = math.min(elapsed / duration, 1)
@@ -218,126 +143,26 @@ task.spawn(function()
 end)
 
 -- ============================================================
---  控制图标（黑色背景 + 彩虹描边 + “唐”字 + 自由拖动）
---  始终显示“唐”，点击仅切换主窗口，图标不改变外观
--- ============================================================
-local controlGui = Instance.new("ScreenGui")
-controlGui.Name = "ControlIconGui"
-controlGui.Parent = player:WaitForChild("PlayerGui")
-controlGui.ResetOnSpawn = false
-
-local controlIcon = Instance.new("TextButton")
-controlIcon.Name = "ControlIcon"
-controlIcon.Size = UDim2.new(0, 50, 0, 50)
-controlIcon.Position = UDim2.new(1, -65, 0, 15)   -- 初始右上角
-controlIcon.BackgroundColor3 = Color3.fromRGB(0, 0, 0)  -- 纯黑
-controlIcon.BackgroundTransparency = 0              -- 完全不透明
-controlIcon.Text = "唐"
-controlIcon.TextColor3 = Color3.fromRGB(255, 255, 255)  -- 白色文字
-controlIcon.TextSize = 28
-controlIcon.Font = Enum.Font.GothamBold
-controlIcon.BorderSizePixel = 0
-controlIcon.AutoButtonColor = false
-controlIcon.Parent = controlGui
-controlIcon.ZIndex = 10
-
-local iconCorner = Instance.new("UICorner")
-iconCorner.CornerRadius = UDim.new(1, 0)            -- 圆形
-iconCorner.Parent = controlIcon
-
--- 彩虹描边（动态变色）
-local iconStroke = Instance.new("UIStroke")
-iconStroke.Thickness = 2
-iconStroke.Parent = controlIcon
-task.spawn(function()
-    local hue = 0
-    while iconStroke and iconStroke.Parent do
-        hue = (hue + 0.008) % 1
-        iconStroke.Color = Color3.fromHSV(hue, 1, 1)
-        task.wait(0.05)
-    end
-end)
-
--- 图标拖动（无边界限制）
-local isDraggingIcon = false
-local dragIconStartX, dragIconStartY
-local iconStartPosX, iconStartPosY
-
-controlIcon.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        isDraggingIcon = true
-        dragIconStartX = input.Position.X
-        dragIconStartY = input.Position.Y
-        iconStartPosX = controlIcon.Position.X.Offset
-        iconStartPosY = controlIcon.Position.Y.Offset
-    end
-end)
-
-controlIcon.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        isDraggingIcon = false
-    end
-end)
-
-userInput.InputChanged:Connect(function(input)
-    if isDraggingIcon and input.UserInputType == Enum.UserInputType.MouseMovement then
-        local deltaX = input.Position.X - dragIconStartX
-        local deltaY = input.Position.Y - dragIconStartY
-        local newX = iconStartPosX + deltaX
-        local newY = iconStartPosY + deltaY
-        -- 无边界限制，可拖到任意位置
-        controlIcon.Position = UDim2.new(0, newX, 0, newY)
-    end
-end)
-
--- 双击图标重置位置到右下角（如果图标丢失，可双击恢复）
-local lastClickTime = 0
-controlIcon.MouseButton1Click:Connect(function()
-    local now = tick()
-    if now - lastClickTime < 0.3 then  -- 双击检测
-        -- 重置到屏幕右下角（距边缘 65 像素）
-        controlIcon.Position = UDim2.new(1, -65, 0, 15)
-        print("🔄 控制图标已重置位置")
-        lastClickTime = 0
-        return
-    end
-    lastClickTime = now
-    -- 单击切换主窗口
-    mainFrame.Visible = not mainFrame.Visible
-    -- 仅改变图标背景色表示状态（但文字和描边不变）
-    if mainFrame.Visible then
-        controlIcon.BackgroundColor3 = Color3.fromRGB(0, 0, 0)      -- 黑色
-    else
-        controlIcon.BackgroundColor3 = Color3.fromRGB(180, 40, 40)  -- 暗红色（表示主窗口隐藏）
-    end
-end)
-
--- 主窗口关闭时同步图标状态（由 closeBtn 触发）
-local function UpdateControlIcon(visible)
-    if visible then
-        controlIcon.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    else
-        controlIcon.BackgroundColor3 = Color3.fromRGB(180, 40, 40)
-    end
-end
--- ============================================================
---  主窗口（横长方形 600x350）- 背景完全透明
+--  主窗口（右上角控制栏：— + ×）
 -- ============================================================
 local gui = Instance.new("ScreenGui")
 gui.Name = "TangScript"
 gui.Parent = player:WaitForChild("PlayerGui")
 gui.ResetOnSpawn = false
+gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+gui.Enabled = false  -- 启动动画期间隐藏
 
 local mainFrame = Instance.new("Frame")
 mainFrame.Parent = gui
-mainFrame.BackgroundColor3 = Color3.fromRGB(25, 30, 50)
-mainFrame.BackgroundTransparency = 1
-mainFrame.BorderSizePixel = 0
+mainFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 30)
+mainFrame.BackgroundTransparency = 0.15
+mainFrame.BorderSizePixel = 2
+mainFrame.BorderColor3 = Color3.fromRGB(50, 150, 255)
 mainFrame.Position = UDim2.new(0.5, -300, 0.5, -175)
 mainFrame.Size = UDim2.new(0, 600, 0, 350)
 mainFrame.Active = true
 mainFrame.Draggable = true
-mainFrame.Visible = false
+mainFrame.Visible = true
 
 local corner = Instance.new("UICorner")
 corner.Parent = mainFrame
@@ -356,101 +181,202 @@ task.spawn(function()
     end
 end)
 
--- 标题栏（完全透明）
+-- ============================================================
+--  标题栏（右上角控制栏）
+-- ============================================================
 local titleBar = Instance.new("Frame")
 titleBar.Parent = mainFrame
 titleBar.Size = UDim2.new(1,0,0,28)
 titleBar.BackgroundColor3 = Color3.fromRGB(18, 22, 42)
-titleBar.BackgroundTransparency = 1
+titleBar.BackgroundTransparency = 0.15
 titleBar.BorderSizePixel = 0
+titleBar.Active = true
+titleBar.Draggable = true
 
+local titleCorner = Instance.new("UICorner")
+titleCorner.Parent = titleBar
+titleCorner.CornerRadius = UDim.new(0,6)
+
+-- 标题文字
 local titleLabel = Instance.new("TextLabel")
 titleLabel.Parent = titleBar
-titleLabel.Size = UDim2.new(0.5,0,1,0)
+titleLabel.Size = UDim2.new(0.6,0,1,0)
 titleLabel.Position = UDim2.new(0,10,0,0)
 titleLabel.BackgroundTransparency = 1
 titleLabel.Text = "唐脚本 v5.0"
-titleLabel.TextColor3 = Color3.fromRGB(0, 0, 0)
+titleLabel.TextColor3 = Color3.fromRGB(30,200,255)
 titleLabel.TextSize = 14
 titleLabel.Font = Enum.Font.GothamBold
 titleLabel.TextXAlignment = Enum.TextXAlignment.Left
-titleLabel.TextStrokeColor3 = Color3.fromRGB(255, 255, 255)
-titleLabel.TextStrokeTransparency = 0.5
 
+-- 控制按钮容器（右上角）
+local btnContainer = Instance.new("Frame")
+btnContainer.Parent = titleBar
+btnContainer.Size = UDim2.new(0, 70, 1, 0)
+btnContainer.Position = UDim2.new(1, -75, 0, 0)
+btnContainer.BackgroundTransparency = 1
+
+-- 最小化按钮（—）
+local minBtn = Instance.new("TextButton")
+minBtn.Parent = btnContainer
+minBtn.Size = UDim2.new(0, 22, 0, 22)
+minBtn.Position = UDim2.new(0, 2, 0.5, -11)
+minBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+minBtn.BackgroundTransparency = 0.3
+minBtn.Text = "−"
+minBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+minBtn.TextSize = 18
+minBtn.Font = Enum.Font.GothamBold
+minBtn.BorderSizePixel = 0
+local minCorner = Instance.new("UICorner")
+minCorner.CornerRadius = UDim.new(1,0)
+minCorner.Parent = minBtn
+
+-- 展开按钮（+）
+local maxBtn = Instance.new("TextButton")
+maxBtn.Parent = btnContainer
+maxBtn.Size = UDim2.new(0, 22, 0, 22)
+maxBtn.Position = UDim2.new(0, 25, 0.5, -11)
+maxBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+maxBtn.BackgroundTransparency = 0.3
+maxBtn.Text = "+"
+maxBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+maxBtn.TextSize = 18
+maxBtn.Font = Enum.Font.GothamBold
+maxBtn.BorderSizePixel = 0
+local maxCorner = Instance.new("UICorner")
+maxCorner.CornerRadius = UDim.new(1,0)
+maxCorner.Parent = maxBtn
+
+-- 关闭按钮（×）
 local closeBtn = Instance.new("TextButton")
-closeBtn.Parent = titleBar
-closeBtn.Size = UDim2.new(0,22,0,22)
-closeBtn.Position = UDim2.new(1,-28,0,3)
-closeBtn.BackgroundColor3 = Color3.fromRGB(180,40,40)
+closeBtn.Parent = btnContainer
+closeBtn.Size = UDim2.new(0, 22, 0, 22)
+closeBtn.Position = UDim2.new(0, 48, 0.5, -11)
+closeBtn.BackgroundColor3 = Color3.fromRGB(180, 40, 40)
 closeBtn.BackgroundTransparency = 0.3
-closeBtn.Text = "X"
-closeBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
-closeBtn.TextSize = 12
+closeBtn.Text = "✕"
+closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeBtn.TextSize = 14
 closeBtn.Font = Enum.Font.GothamBold
 closeBtn.BorderSizePixel = 0
 local closeCorner = Instance.new("UICorner")
-closeCorner.Parent = closeBtn
 closeCorner.CornerRadius = UDim.new(1,0)
+closeCorner.Parent = closeBtn
 
--- 控制图标联动（点击开关主窗口）
-local function UpdateControlIcon(visible)
-    if visible then
-        controlIcon.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-        controlIcon.Text = "唐"
-        controlIcon.TextColor3 = Color3.fromRGB(255, 255, 255)
+-- 窗口状态
+local isMinimized = false
+local normalSize = UDim2.new(0, 600, 0, 350)
+local minimizedSize = UDim2.new(0, 200, 0, 28)
+local normalPos = UDim2.new(0.5, -300, 0.5, -175)
+local minimizedPos = UDim2.new(0, 10, 0, 10)
+
+minBtn.MouseButton1Click:Connect(function()
+    if isMinimized then
+        mainFrame.Size = normalSize
+        mainFrame.Position = normalPos
+        mainFrame.BackgroundTransparency = 0.15
+        isMinimized = false
+        minBtn.Text = "−"
     else
-        controlIcon.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-        controlIcon.Text = "◉"
-        controlIcon.TextColor3 = Color3.fromRGB(255, 200, 200)
+        mainFrame.Size = minimizedSize
+        mainFrame.Position = minimizedPos
+        mainFrame.BackgroundTransparency = 0.8
+        isMinimized = true
+        minBtn.Text = "+"
     end
-end
+end)
 
-controlIcon.MouseButton1Click:Connect(function()
-    mainFrame.Visible = not mainFrame.Visible
-    UpdateControlIcon(mainFrame.Visible)
+maxBtn.MouseButton1Click:Connect(function()
+    if isMinimized then
+        mainFrame.Size = normalSize
+        mainFrame.Position = normalPos
+        mainFrame.BackgroundTransparency = 0.15
+        isMinimized = false
+        minBtn.Text = "−"
+    else
+        mainFrame.Size = minimizedSize
+        mainFrame.Position = minimizedPos
+        mainFrame.BackgroundTransparency = 0.8
+        isMinimized = true
+        minBtn.Text = "+"
+    end
 end)
 
 closeBtn.MouseButton1Click:Connect(function()
     mainFrame.Visible = false
-    UpdateControlIcon(false)
+    isMinimized = false
+    minBtn.Text = "−"
 end)
 
--- 侧栏（完全透明）
-local sideBar = Instance.new("Frame")
-sideBar.Parent = mainFrame
-sideBar.Size = UDim2.new(0,70,1,-28)
-sideBar.Position = UDim2.new(0,0,0,28)
-sideBar.BackgroundColor3 = Color3.fromRGB(15, 20, 38)
-sideBar.BackgroundTransparency = 1
-sideBar.BorderSizePixel = 0
+titleBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        if titleBar:GetAttribute("LastClick") and tick() - titleBar:GetAttribute("LastClick") < 0.3 then
+            if isMinimized then
+                mainFrame.Size = normalSize
+                mainFrame.Position = normalPos
+                mainFrame.BackgroundTransparency = 0.15
+                isMinimized = false
+                minBtn.Text = "−"
+            else
+                mainFrame.Size = minimizedSize
+                mainFrame.Position = minimizedPos
+                mainFrame.BackgroundTransparency = 0.8
+                isMinimized = true
+                minBtn.Text = "+"
+            end
+            titleBar:SetAttribute("LastClick", 0)
+        else
+            titleBar:SetAttribute("LastClick", tick())
+        end
+    end
+end)
 
-local btnNames = {"通用","MM2","Peta","飞行","甩飞","僵尸塔","简介"}
-local btnList = {}
+-- ============================================================
+--  侧栏与内容区域
+-- ============================================================
 local contentFrame = Instance.new("Frame")
 contentFrame.Parent = mainFrame
-contentFrame.Size = UDim2.new(1,-70,1,-28)
-contentFrame.Position = UDim2.new(0,70,0,28)
+contentFrame.Size = UDim2.new(1,0,1,-28)
+contentFrame.Position = UDim2.new(0,0,0,28)
 contentFrame.BackgroundTransparency = 1
 
+local sideBar = Instance.new("Frame")
+sideBar.Parent = contentFrame
+sideBar.Size = UDim2.new(0,70,1,0)
+sideBar.Position = UDim2.new(0,0,0,0)
+sideBar.BackgroundColor3 = Color3.fromRGB(10,14,28)
+sideBar.BackgroundTransparency = 0.5
+sideBar.BorderSizePixel = 0
+
+local panelContainer = Instance.new("Frame")
+panelContainer.Parent = contentFrame
+panelContainer.Size = UDim2.new(1,-70,1,0)
+panelContainer.Position = UDim2.new(0,70,0,0)
+panelContainer.BackgroundTransparency = 1
+
 local panel = Instance.new("ScrollingFrame")
-panel.Parent = contentFrame
+panel.Parent = panelContainer
 panel.Size = UDim2.new(1,-8,1,-4)
 panel.Position = UDim2.new(0,4,0,2)
 panel.BackgroundTransparency = 1
 panel.CanvasSize = UDim2.new(0,0,0,0)
 panel.ScrollBarThickness = 2
 
+local btnNames = {"通用","MM2","Peta","飞行","甩飞","僵尸塔","森林·99夜","简介"}
+local btnList = {}
+
 for i,name in ipairs(btnNames) do
     local btn = Instance.new("TextButton")
     btn.Parent = sideBar
     btn.Size = UDim2.new(0.8,0,0,26)
-    btn.Position = UDim2.new(0.1,0,0.03+(i-1)*0.12,0)
+    btn.Position = UDim2.new(0.1,0,0.03+(i-1)*0.10,0)
     btn.BackgroundColor3 = (i==1) and Color3.fromRGB(30,200,255) or Color3.fromRGB(20,40,60)
     btn.BackgroundTransparency = 0.6
     btn.BorderSizePixel = 1
     btn.BorderColor3 = (i==1) and Color3.fromRGB(30,200,255) or Color3.fromRGB(50,50,70)
     btn.Text = name
-    btn.TextColor3 = Color3.fromRGB(0, 0, 0)
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     btn.TextSize = 11
     btn.Font = Enum.Font.GothamSemibold
     local c = Instance.new("UICorner")
@@ -460,7 +386,7 @@ for i,name in ipairs(btnNames) do
 end
 
 -- ============================================================
---  辅助函数（通用）- 每个功能用暗色长条框独立框住，文字黑色
+--  辅助函数
 -- ============================================================
 local function clearPanel()
     for _,v in pairs(panel:GetChildren()) do
@@ -490,7 +416,7 @@ local function addToggle(text, default, cb)
     lbl.Position = UDim2.new(0,10,0,0)
     lbl.BackgroundTransparency = 1
     lbl.Text = text
-    lbl.TextColor3 = Color3.fromRGB(0, 0, 0)
+    lbl.TextColor3 = Color3.fromRGB(255, 255, 255)
     lbl.TextSize = 12
     lbl.Font = Enum.Font.Gotham
     lbl.TextXAlignment = Enum.TextXAlignment.Left
@@ -554,7 +480,7 @@ local function addButton(text, color, cb)
     btn.Position = UDim2.new(0,0,0,0)
     btn.BackgroundTransparency = 1
     btn.Text = text
-    btn.TextColor3 = Color3.fromRGB(0, 0, 0)
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     btn.TextSize = 12
     btn.Font = Enum.Font.Gotham
     btn.BorderSizePixel = 0
@@ -569,7 +495,7 @@ local function addLabel(text, color)
     lbl.Position = UDim2.new(0,2,0,y)
     lbl.BackgroundTransparency = 1
     lbl.Text = text
-    lbl.TextColor3 = Color3.fromRGB(0, 0, 0)
+    lbl.TextColor3 = Color3.fromRGB(255, 255, 255)
     lbl.TextSize = 11
     lbl.Font = Enum.Font.Gotham
     lbl.TextXAlignment = Enum.TextXAlignment.Left
@@ -595,115 +521,12 @@ local function addTitle(text)
     lbl.Position = UDim2.new(0,2,0,y)
     lbl.BackgroundTransparency = 1
     lbl.Text = text
-    lbl.TextColor3 = Color3.fromRGB(0, 0, 0)
+    lbl.TextColor3 = Color3.fromRGB(255, 255, 255)
     lbl.TextSize = 13
     lbl.Font = Enum.Font.GothamBold
     lbl.TextXAlignment = Enum.TextXAlignment.Left
-    lbl.TextStrokeColor3 = Color3.fromRGB(255, 255, 255)
+    lbl.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
     lbl.TextStrokeTransparency = 0.3
-end
-
--- ============================================================
---  面板：简介
--- ============================================================
-local function loadIntro()
-    clearPanel()
-    addTitle("📋 关于本脚本")
-
-    local card = Instance.new("Frame")
-    card.Parent = panel
-    card.Size = UDim2.new(1,-4,0,180)
-    card.Position = UDim2.new(0,2,0,#panel:GetChildren()*32+8)
-    card.BackgroundColor3 = Color3.fromRGB(20, 22, 40)
-    card.BackgroundTransparency = 0.5
-    card.BorderSizePixel = 1
-    card.BorderColor3 = Color3.fromRGB(30, 200, 255)
-    local cardCorner = Instance.new("UICorner")
-    cardCorner.Parent = card
-    cardCorner.CornerRadius = UDim.new(0,6)
-
-    local icon = Instance.new("TextLabel")
-    icon.Parent = card
-    icon.Size = UDim2.new(0, 50, 0, 50)
-    icon.Position = UDim2.new(0.5, -25, 0, 10)
-    icon.BackgroundTransparency = 1
-    icon.Text = "📜"
-    icon.TextSize = 36
-    icon.TextColor3 = Color3.fromRGB(0, 0, 0)
-    icon.Font = Enum.Font.GothamBold
-    icon.TextXAlignment = Enum.TextXAlignment.Center
-
-    local titleLbl = Instance.new("TextLabel")
-    titleLbl.Parent = card
-    titleLbl.Size = UDim2.new(1, 0, 0, 30)
-    titleLbl.Position = UDim2.new(0, 0, 0, 55)
-    titleLbl.BackgroundTransparency = 1
-    titleLbl.Text = "唐脚本 v5.0"
-    titleLbl.TextColor3 = Color3.fromRGB(0, 0, 0)
-    titleLbl.TextSize = 20
-    titleLbl.Font = Enum.Font.GothamBold
-    titleLbl.TextXAlignment = Enum.TextXAlignment.Center
-    titleLbl.TextStrokeColor3 = Color3.fromRGB(255, 255, 255)
-    titleLbl.TextStrokeTransparency = 0.4
-
-    local line = Instance.new("Frame")
-    line.Parent = card
-    line.Size = UDim2.new(0.6, 0, 0, 1)
-    line.Position = UDim2.new(0.2, 0, 0, 88)
-    line.BackgroundColor3 = Color3.fromRGB(30, 200, 255)
-    line.BackgroundTransparency = 0.5
-    line.BorderSizePixel = 0
-
-    local authorLbl = Instance.new("TextLabel")
-    authorLbl.Parent = card
-    authorLbl.Size = UDim2.new(1, 0, 0, 24)
-    authorLbl.Position = UDim2.new(0, 0, 0, 95)
-    authorLbl.BackgroundTransparency = 1
-    authorLbl.Text = "👤 作者：kkcmjf"
-    authorLbl.TextColor3 = Color3.fromRGB(0, 0, 0)
-    authorLbl.TextSize = 14
-    authorLbl.Font = Enum.Font.Gotham
-    authorLbl.TextXAlignment = Enum.TextXAlignment.Center
-
-    local feelingLbl = Instance.new("TextLabel")
-    feelingLbl.Parent = card
-    feelingLbl.Size = UDim2.new(1, 0, 0, 24)
-    feelingLbl.Position = UDim2.new(0, 0, 0, 120)
-    feelingLbl.BackgroundTransparency = 1
-    feelingLbl.Text = "💭 感想：没有一个源代码我只能用ai了 😭"
-    feelingLbl.TextColor3 = Color3.fromRGB(0, 0, 0)
-    feelingLbl.TextSize = 13
-    feelingLbl.Font = Enum.Font.Gotham
-    feelingLbl.TextXAlignment = Enum.TextXAlignment.Center
-
-    local versionLbl = Instance.new("TextLabel")
-    versionLbl.Parent = card
-    versionLbl.Size = UDim2.new(1, 0, 0, 20)
-    versionLbl.Position = UDim2.new(0, 0, 0, 148)
-    versionLbl.BackgroundTransparency = 1
-    versionLbl.Text = "⚡ 仅限学习交流使用 · 请勿用于商业用途"
-    versionLbl.TextColor3 = Color3.fromRGB(0, 0, 0)
-    versionLbl.TextSize = 11
-    versionLbl.Font = Enum.Font.Gotham
-    versionLbl.TextXAlignment = Enum.TextXAlignment.Center
-
-    addDivider()
-    addTitle("📦 功能列表")
-
-    local functionsText = {
-        "• 通用：取消坠落伤害",
-        "• MM2：武器复制、身份标签、Kill Aura、传送",
-        "• Peta：钥匙/器官/传送门/灵魂火焰透视描边",
-        "• 飞行：无敌少侠飞行模式（WASD/空格/Shift）",
-        "• 甩飞：静默甩飞、传送甩飞、循环甩飞",
-        "• 僵尸塔：杀戮光环、无限子弹"
-    }
-
-    for _, text in ipairs(functionsText) do
-        addLabel(text, Color3.fromRGB(0, 0, 0))
-    end
-
-    panel.CanvasSize = UDim2.new(0,0,0,#panel:GetChildren()*32+20)
 end
 
 -- ============================================================
@@ -749,7 +572,7 @@ local function loadGeneral()
 end
 
 -- ============================================================
---  面板：MM2（完整功能）
+--  面板：MM2
 -- ============================================================
 local function loadMM2()
     clearPanel()
@@ -793,7 +616,7 @@ local function loadMM2()
                 b.Text = p.Name
                 b.BackgroundColor3 = Color3.fromRGB(30,30,45)
                 b.BackgroundTransparency = 0.5
-                b.TextColor3 = Color3.fromRGB(0, 0, 0)
+                b.TextColor3 = Color3.fromRGB(255, 255, 255)
                 b.TextSize = 11
                 b.Font = Enum.Font.Gotham
                 b.BorderSizePixel = 1
@@ -1005,14 +828,13 @@ local function loadMM2()
         end
     end)
 
-    -- 显示身份标签
     local showIdentity = false
     local identityConn = nil
 
     local function getPlayerIdentity(targetPlayer)
         local char = targetPlayer.Character
-        if not char then return "平民" end
-
+        if not char then return "平民"
+        end
         for _, child in pairs(char:GetChildren()) do
             if child:IsA("Tool") then
                 local name = child.Name:lower()
@@ -1025,7 +847,6 @@ local function loadMM2()
                 end
             end
         end
-
         local backpack = targetPlayer:FindFirstChild("Backpack")
         if backpack then
             for _, child in pairs(backpack:GetChildren()) do
@@ -1067,7 +888,6 @@ local function loadMM2()
                     if hrp then
                         local old = hrp:FindFirstChild("IdentityESP")
                         if old then old:Destroy() end
-
                         local identity = getPlayerIdentity(p)
                         local bg = Instance.new("BillboardGui")
                         bg.Name = "IdentityESP"
@@ -1075,14 +895,11 @@ local function loadMM2()
                         bg.AlwaysOnTop = true
                         bg.StudsOffset = Vector3.new(0, 3.5, 0)
                         bg.Parent = hrp
-
                         local label = Instance.new("TextLabel")
                         label.Size = UDim2.new(1, 0, 1, 0)
                         label.BackgroundTransparency = 1
                         label.Text = identity
-                        label.TextColor3 = identity:find("杀手") and Color3.fromRGB(255, 50, 50)
-                                        or identity:find("警长") and Color3.fromRGB(50, 150, 255)
-                                        or Color3.fromRGB(200, 200, 200)
+                        label.TextColor3 = identity:find("杀手") and Color3.fromRGB(255, 50, 50) or identity:find("警长") and Color3.fromRGB(50, 150, 255) or Color3.fromRGB(200, 200, 200)
                         label.TextScaled = true
                         label.Font = Enum.Font.GothamBold
                         label.Parent = bg
@@ -1118,7 +935,7 @@ local function loadMM2()
         end
     end)
 
-    addButton("刷新身份标签", Color3.fromRGB(30,120,180), function()
+    addButton("刷新身份标签", Color3.fromRGB(30,150,200), function()
         if showIdentity then
             clearIdentityLabels()
             updateIdentityLabels()
@@ -1128,7 +945,88 @@ local function loadMM2()
         end
     end)
 
-    -- Kill Aura（玩家）
+    local showNameLabels = false
+    local nameLabelConn = nil
+    local function clearNameLabels()
+        for _, p in pairs(game.Players:GetPlayers()) do
+            local char = p.Character
+            if char then
+                local hrp = char:FindFirstChild("HumanoidRootPart")
+                if hrp then
+                    local label = hrp:FindFirstChild("NameLabelESP")
+                    if label then label:Destroy() end
+                end
+            end
+        end
+    end
+    local function updateNameLabels()
+        if not showNameLabels then return end
+        for _, p in pairs(game.Players:GetPlayers()) do
+            if p ~= player then
+                local char = p.Character
+                if char then
+                    local hrp = char:FindFirstChild("HumanoidRootPart")
+                    if hrp then
+                        local old = hrp:FindFirstChild("NameLabelESP")
+                        if old then old:Destroy() end
+                        local bg = Instance.new("BillboardGui")
+                        bg.Name = "NameLabelESP"
+                        bg.Size = UDim2.new(0, 200, 0, 40)
+                        bg.AlwaysOnTop = true
+                        bg.StudsOffset = Vector3.new(0, 4, 0)
+                        bg.Parent = hrp
+                        local label = Instance.new("TextLabel")
+                        label.Size = UDim2.new(1, 0, 1, 0)
+                        label.BackgroundTransparency = 1
+                        label.Text = p.Name
+                        label.TextColor3 = Color3.fromRGB(255, 255, 255)
+                        label.TextScaled = true
+                        label.Font = Enum.Font.GothamBold
+                        label.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+                        label.TextStrokeTransparency = 0.3
+                        label.Parent = bg
+                    end
+                end
+            end
+        end
+    end
+
+    addToggle("显示玩家名字标签", false, function(s)
+        showNameLabels = s
+        if s then
+            clearNameLabels()
+            updateNameLabels()
+            nameLabelConn = runService.Heartbeat:Connect(function()
+                if not showNameLabels then
+                    nameLabelConn:Disconnect()
+                    nameLabelConn = nil
+                    clearNameLabels()
+                    return
+                end
+                updateNameLabels()
+                task.wait(2)
+            end)
+            print("玩家名字标签已开启")
+        else
+            if nameLabelConn then
+                nameLabelConn:Disconnect()
+                nameLabelConn = nil
+            end
+            clearNameLabels()
+            print("玩家名字标签已关闭")
+        end
+    end)
+
+    addButton("刷新名字标签", Color3.fromRGB(30,150,200), function()
+        if showNameLabels then
+            clearNameLabels()
+            updateNameLabels()
+            print("名字标签已刷新")
+        else
+            print("请先开启名字标签开关")
+        end
+    end)
+
     local killAuraActive = false
     local killAuraConn = nil
     local killRange = 30
@@ -1143,7 +1041,6 @@ local function loadMM2()
                 if not myChar then return end
                 local myHRP = myChar:FindFirstChild("HumanoidRootPart")
                 if not myHRP then return end
-
                 for _, p in pairs(game.Players:GetPlayers()) do
                     if p ~= player then
                         local targetChar = p.Character
@@ -1272,19 +1169,19 @@ local function loadMM2()
 end
 
 -- ============================================================
---  面板：Peta（器官透视 + 传送门标记 + 钥匙描边 + 灵魂火焰）
+--  面板：Peta（完整优化版 - 10秒扫描）
+--  包含：钥匙、箱子、保险箱、代码、盘子、打火机、
+--        器官、传送门、灵魂火焰、怪物、药水、书籍、木偶、
+--        五种颜色的娃娃、娃娃头、画作、孩子
 -- ============================================================
 local function loadPeta()
     clearPanel()
-    addTitle("🧬 Peta 透视辅助")
+    addTitle("🧬 Peta 透视辅助 (10秒扫描)")
 
-    -- ========== 工具函数：创建高亮描边 ==========
     local function applyHighlight(instance, color, name)
         if not instance or not instance:IsA("BasePart") then return end
         for _, child in pairs(instance:GetChildren()) do
-            if child:IsA("Highlight") then
-                child:Destroy()
-            end
+            if child:IsA("Highlight") then child:Destroy() end
         end
         local hl = Instance.new("Highlight")
         hl.Name = "PetaHighlight"
@@ -1305,31 +1202,77 @@ local function loadPeta()
         end
     end
 
-    -- ========== 功能状态 ==========
-    local keyActive = false
-    local organActive = false
-    local portalActive = false
-    local soulActive = false
+    local function teleportToPosition(targetPos)
+        local char = player.Character
+        if not char then return false end
+        local hrp = char:FindFirstChild("HumanoidRootPart")
+        if not hrp then return false end
+        hrp.CFrame = CFrame.new(targetPos)
+        return true
+    end
 
-    local keyThread = nil
-    local organThread = nil
-    local portalThread = nil
-    local soulThread = nil
+    local function teleportToNearest(partNames, displayName)
+        local char = player.Character
+        if not char then return end
+        local hrp = char:FindFirstChild("HumanoidRootPart")
+        if not hrp then return end
 
-    local correctPortal = nil
-    local correctPortalHL = nil
+        local nearest, minDist = nil, math.huge
+        for _, obj in pairs(workspace:GetDescendants()) do
+            if obj:IsA("BasePart") then
+                local n = obj.Name:lower()
+                local matched = false
+                for _, name in ipairs(partNames) do
+                    if n:find(name) then matched = true; break end
+                end
+                if matched then
+                    if not obj:FindFirstAncestorOfClass("Model") or
+                       not obj:FindFirstAncestorOfClass("Model"):FindFirstChild("Humanoid") then
+                        local dist = (hrp.Position - obj.Position).Magnitude
+                        if dist < minDist then
+                            minDist = dist
+                            nearest = obj
+                        end
+                    end
+                end
+            end
+        end
 
-    -- ========== 1. 钥匙透视描边 ==========
+        if nearest then
+            teleportToPosition(nearest.Position)
+            print("✅ 已传送到最近的" .. displayName .. ": " .. nearest.Name)
+        else
+            print("⚠️ 未找到任何" .. displayName)
+        end
+    end
+
+    -- 状态变量
+    local keyActive, chestActive, safeActive, codeActive = false, false, false, false
+    local plateActive, lighterActive = false, false
+    local childActive = false  -- 新增：孩子透视
+    local organActive, portalActive, soulActive = false, false, false
+    local potionActive, bookActive, puppetActive, monsterActive = false, false, false, false
+    local dollActive, dollHeadActive, paintingActive = false, false, false
+
+    local keyThread, chestThread, safeThread, codeThread = nil, nil, nil, nil
+    local plateThread, lighterThread = nil, nil
+    local childThread = nil  -- 新增
+    local organThread, portalThread, soulThread = nil, nil, nil
+    local potionThread, bookThread, puppetThread, monsterThread = nil, nil, nil, nil
+    local dollThread, dollHeadThread, paintingThread = nil, nil, nil
+
+    local correctPortal, correctPortalHL = nil, nil
+
+    -- ====== 所有透视开关（10秒扫描） ======
+
+    -- 🔑 钥匙
     addToggle("🔑 钥匙透视描边", false, function(s)
         keyActive = s
         if keyThread then task.cancel(keyThread); keyThread = nil end
-        if not s then
-            removeHighlights()
-            return
-        end
+        if not s then removeHighlights() return end
         keyThread = task.spawn(function()
             while keyActive do
-                task.wait(0.5)
+                task.wait(10)
                 for _, obj in pairs(workspace:GetDescendants()) do
                     if obj:IsA("BasePart") then
                         local n = obj.Name:lower()
@@ -1341,32 +1284,194 @@ local function loadPeta()
                         end
                     end
                 end
-                task.wait(1)
             end
         end)
     end)
 
-    -- ========== 2. 器官透视描边 ==========
-    addToggle("❤️ 器官透视描边", false, function(s)
-        organActive = s
-        if organThread then task.cancel(organThread); organThread = nil end
-        if not s then
-            removeHighlights()
-            return
-        end
-        organThread = task.spawn(function()
-            local organNames = {"heart", "kidney", "liver", "lung", "brain", "organ", "心脏", "肾脏", "肝脏", "肺", "脑", "器官"}
-            while organActive do
-                task.wait(0.5)
+    -- 📦 箱子
+    addToggle("📦 箱子透视描边", false, function(s)
+        chestActive = s
+        if chestThread then task.cancel(chestThread); chestThread = nil end
+        if not s then removeHighlights() return end
+        chestThread = task.spawn(function()
+            while chestActive do
+                task.wait(10)
+                for _, obj in pairs(workspace:GetDescendants()) do
+                    if obj:IsA("BasePart") then
+                        local n = obj.Name:lower()
+                        if n:find("chest") or n:find("箱") or n:find("箱子") or n:find("crate") then
+                            if not obj:FindFirstAncestorOfClass("Model") or
+                               not obj:FindFirstAncestorOfClass("Model"):FindFirstChild("Humanoid") then
+                                applyHighlight(obj, Color3.fromRGB(255, 180, 50), "Chest")
+                            end
+                        end
+                    end
+                end
+            end
+        end)
+    end)
+
+    -- 🔒 保险箱
+    addToggle("🔒 保险箱透视描边", false, function(s)
+        safeActive = s
+        if safeThread then task.cancel(safeThread); safeThread = nil end
+        if not s then removeHighlights() return end
+        safeThread = task.spawn(function()
+            while safeActive do
+                task.wait(10)
+                for _, obj in pairs(workspace:GetDescendants()) do
+                    if obj:IsA("BasePart") then
+                        local n = obj.Name:lower()
+                        if n:find("safe") or n:find("保险箱") or n:find("vault") or n:find("金库") then
+                            if not obj:FindFirstAncestorOfClass("Model") or
+                               not obj:FindFirstAncestorOfClass("Model"):FindFirstChild("Humanoid") then
+                                applyHighlight(obj, Color3.fromRGB(50, 255, 150), "Safe")
+                            end
+                        end
+                    end
+                end
+            end
+        end)
+    end)
+
+    -- 💻 代码
+    addToggle("💻 代码透视描边", false, function(s)
+        codeActive = s
+        if codeThread then task.cancel(codeThread); codeThread = nil end
+        if not s then removeHighlights() return end
+        codeThread = task.spawn(function()
+            while codeActive do
+                task.wait(10)
+                for _, obj in pairs(workspace:GetDescendants()) do
+                    if obj:IsA("BasePart") then
+                        local n = obj.Name:lower()
+                        if n:find("code") or n:find("密码") or n:find("数字") or n:find("号码") or n:find("keypad") or n:find("键盘") then
+                            if not obj:FindFirstAncestorOfClass("Model") or
+                               not obj:FindFirstAncestorOfClass("Model"):FindFirstChild("Humanoid") then
+                                applyHighlight(obj, Color3.fromRGB(100, 200, 255), "Code")
+                            end
+                        end
+                    end
+                end
+            end
+        end)
+    end)
+
+    -- 🍽️ 盘子
+    addToggle("🍽️ 盘子透视描边", false, function(s)
+        plateActive = s
+        if plateThread then task.cancel(plateThread); plateThread = nil end
+        if not s then removeHighlights() return end
+        plateThread = task.spawn(function()
+            while plateActive do
+                task.wait(10)
+                for _, obj in pairs(workspace:GetDescendants()) do
+                    if obj:IsA("BasePart") then
+                        local n = obj.Name:lower()
+                        if n:find("plate") or n:find("盘子") or n:find("碟子") or n:find("dish") then
+                            if not obj:FindFirstAncestorOfClass("Model") or
+                               not obj:FindFirstAncestorOfClass("Model"):FindFirstChild("Humanoid") then
+                                applyHighlight(obj, Color3.fromRGB(255, 200, 100), "Plate")
+                            end
+                        end
+                    end
+                end
+            end
+        end)
+    end)
+
+    -- 🔥 打火机
+    addToggle("🔥 打火机透视描边", false, function(s)
+        lighterActive = s
+        if lighterThread then task.cancel(lighterThread); lighterThread = nil end
+        if not s then removeHighlights() return end
+        lighterThread = task.spawn(function()
+            while lighterActive do
+                task.wait(10)
+                for _, obj in pairs(workspace:GetDescendants()) do
+                    if obj:IsA("BasePart") then
+                        local n = obj.Name:lower()
+                        if n:find("lighter") or n:find("打火机") or n:find("火机") or n:find("点火器") then
+                            if not obj:FindFirstAncestorOfClass("Model") or
+                               not obj:FindFirstAncestorOfClass("Model"):FindFirstChild("Humanoid") then
+                                applyHighlight(obj, Color3.fromRGB(255, 150, 50), "Lighter")
+                            end
+                        end
+                    end
+                end
+            end
+        end)
+    end)
+
+    -- 👶 孩子透视（新增）
+    addToggle("👶 孩子透视描边", false, function(s)
+        childActive = s
+        if childThread then task.cancel(childThread); childThread = nil end
+        if not s then removeHighlights() return end
+        childThread = task.spawn(function()
+            local childKeywords = {"child","kid","孩子","小孩","儿子","女儿","baby","婴儿","dino kid","kraken kid","squid kid","koala kid","恐龙小子","海怪小子","鱿鱼小子","考拉小子"}
+            while childActive do
+                task.wait(10)
                 for _, obj in pairs(workspace:GetDescendants()) do
                     if obj:IsA("BasePart") then
                         local n = obj.Name:lower()
                         local found = false
-                        for _, name in ipairs(organNames) do
-                            if n:find(name) then
-                                found = true
-                                break
+                        for _, kw in ipairs(childKeywords) do
+                            if n:find(kw) then found = true; break end
+                        end
+                        if not found and obj.Parent and obj.Parent:IsA("Model") then
+                            local mname = obj.Parent.Name:lower()
+                            for _, kw in ipairs(childKeywords) do
+                                if mname:find(kw) then found = true; break end
                             end
+                        end
+                        if found then
+                            if not obj:FindFirstAncestorOfClass("Model") or
+                               not obj:FindFirstAncestorOfClass("Model"):FindFirstChild("Humanoid") then
+                                applyHighlight(obj, Color3.fromRGB(255, 100, 200), "Child")
+                            end
+                        end
+                    end
+                end
+            end
+        end)
+    end)
+
+    -- ❤️ 器官
+    addToggle("❤️ 器官透视描边 (增强)", false, function(s)
+        organActive = s
+        if organThread then task.cancel(organThread); organThread = nil end
+        if not s then removeHighlights() return end
+        organThread = task.spawn(function()
+            local organKeywords = {"heart","心脏","kidney","肾脏","liver","肝脏","lung","肺","brain","脑","organ","器官","stomach","胃","intestine","肠","bladder","膀胱","pancreas","胰腺","spleen","脾","gallbladder","胆囊","bone","骨头","muscle","肌肉","skin","皮肤","tissue","组织","vein","静脉","artery","动脉","nerve","神经","spinal","脊柱","rib","肋骨","pelvis","骨盆","skull","头骨","jaw","下颌"}
+            while organActive do
+                task.wait(10)
+                for _, obj in pairs(workspace:GetDescendants()) do
+                    if obj:IsA("BasePart") then
+                        local n = obj.Name:lower()
+                        local found = false
+                        for _, kw in ipairs(organKeywords) do
+                            if n:find(kw) then found = true; break end
+                        end
+                        if not found and obj.Parent and obj.Parent:IsA("Model") then
+                            local model = obj.Parent
+                            local sphereCount, hasOrganName = 0, false
+                            local mname = model.Name:lower()
+                            for _, kw in ipairs(organKeywords) do
+                                if mname:find(kw) then hasOrganName = true; break end
+                            end
+                            for _, child in pairs(model:GetChildren()) do
+                                if child:IsA("BasePart") then
+                                    if child:IsA("Part") and child.Shape == Enum.PartType.Ball then
+                                        sphereCount = sphereCount + 1
+                                    end
+                                    local cn = child.Name:lower()
+                                    for _, kw in ipairs(organKeywords) do
+                                        if cn:find(kw) then hasOrganName = true; break end
+                                    end
+                                end
+                            end
+                            if sphereCount >= 2 or hasOrganName then found = true end
                         end
                         if found then
                             if not obj:FindFirstAncestorOfClass("Model") or
@@ -1376,50 +1481,34 @@ local function loadPeta()
                         end
                     end
                 end
-                task.wait(1)
             end
         end)
     end)
 
-    -- ========== 3. 传送门透视描边（漩涡状） ==========
+    -- 🚪 传送门
     addToggle("🚪 传送门透视描边", false, function(s)
         portalActive = s
         if portalThread then task.cancel(portalThread); portalThread = nil end
-        if not s then
-            removeHighlights()
-            return
-        end
+        if not s then removeHighlights() return end
         portalThread = task.spawn(function()
             while portalActive do
-                task.wait(0.5)
+                task.wait(10)
                 for _, obj in pairs(workspace:GetDescendants()) do
                     if obj:IsA("BasePart") then
                         local n = obj.Name:lower()
                         local isPortal = false
-
-                        if n:find("vortex") or n:find("portal") or n:find("传送门") or
-                           n:find("teleport") or n:find("gate") or n:find("door") then
-                            isPortal = true
-                        end
-
+                        if n:find("vortex") or n:find("portal") or n:find("传送门") or n:find("teleport") or n:find("gate") or n:find("door") then isPortal = true end
                         if obj:IsA("Part") and obj.Shape == Enum.PartType.Cylinder then
-                            if n:find("portal") or n:find("vortex") then
-                                isPortal = true
-                            end
+                            if n:find("portal") or n:find("vortex") then isPortal = true end
                         end
-
                         if not isPortal then
                             for _, child in pairs(obj:GetChildren()) do
                                 if child:IsA("BasePart") then
                                     local cn = child.Name:lower()
-                                    if cn:find("vortex") or cn:find("portal") then
-                                        isPortal = true
-                                        break
-                                    end
+                                    if cn:find("vortex") or cn:find("portal") then isPortal = true; break end
                                 end
                             end
                         end
-
                         if isPortal then
                             if not obj:FindFirstAncestorOfClass("Model") or
                                not obj:FindFirstAncestorOfClass("Model"):FindFirstChild("Humanoid") then
@@ -1430,32 +1519,25 @@ local function loadPeta()
                         end
                     end
                 end
-                task.wait(1)
             end
         end)
     end)
 
-    -- ========== 4. 灵魂火焰描边 ==========
+    -- 🔥 灵魂火焰
     addToggle("🔥 灵魂火焰描边", false, function(s)
         soulActive = s
         if soulThread then task.cancel(soulThread); soulThread = nil end
-        if not s then
-            removeHighlights()
-            return
-        end
+        if not s then removeHighlights() return end
         soulThread = task.spawn(function()
-            local soulNames = {"fire", "flame", "soul", "spirit", "火焰", "灵魂", "火", "灵"}
+            local soulNames = {"fire","flame","soul","spirit","火焰","灵魂","火","灵"}
             while soulActive do
-                task.wait(0.5)
+                task.wait(10)
                 for _, obj in pairs(workspace:GetDescendants()) do
                     if obj:IsA("BasePart") then
                         local n = obj.Name:lower()
                         local found = false
                         for _, name in ipairs(soulNames) do
-                            if n:find(name) then
-                                found = true
-                                break
-                            end
+                            if n:find(name) then found = true; break end
                         end
                         if found then
                             if not obj:FindFirstAncestorOfClass("Model") or
@@ -1465,51 +1547,321 @@ local function loadPeta()
                         end
                     end
                 end
-                task.wait(1)
             end
         end)
     end)
 
+    -- 🧟 怪物
+    addToggle("🧟 怪物透视 (红色描边)", false, function(s)
+        monsterActive = s
+        if monsterThread then task.cancel(monsterThread); monsterThread = nil end
+        if not s then removeHighlights() return end
+        monsterThread = task.spawn(function()
+            local monsterKeywords = {"monster","zombie","enemy","creature","ghost","demon","skeleton","怪物","僵尸","敌人","生物","鬼","恶魔","骷髅","boss","守卫","guard","spider","狼","wolf","bear","熊","mummy","木乃伊","vampire","吸血鬼","werewolf","狼人","golem","魔像"}
+            while monsterActive do
+                task.wait(10)
+                for _, obj in pairs(workspace:GetDescendants()) do
+                    if obj:IsA("BasePart") then
+                        local n = obj.Name:lower()
+                        local found = false
+                        for _, kw in ipairs(monsterKeywords) do
+                            if n:find(kw) then found = true; break end
+                        end
+                        if not found and obj.Parent and obj.Parent:IsA("Model") then
+                            local mname = obj.Parent.Name:lower()
+                            for _, kw in ipairs(monsterKeywords) do
+                                if mname:find(kw) then found = true; break end
+                            end
+                            if not found and obj.Parent:FindFirstChildOfClass("Humanoid") then
+                                local model = obj.Parent
+                                if model ~= player.Character then found = true end
+                            end
+                        end
+                        if found then
+                            if not obj:FindFirstAncestorOfClass("Model") or
+                               not obj:FindFirstAncestorOfClass("Model"):FindFirstChild("Humanoid") then
+                                applyHighlight(obj, Color3.fromRGB(255, 0, 0), "Monster")
+                            end
+                        end
+                    end
+                end
+            end
+        end)
+    end)
+
+    -- 🧪 药水
+    addToggle("🧪 药水瓶子透视", false, function(s)
+        potionActive = s
+        if potionThread then task.cancel(potionThread); potionThread = nil end
+        if not s then removeHighlights() return end
+        potionThread = task.spawn(function()
+            local potionKeywords = {"potion","药水","bottle","瓶子","flask","vial","drink","health","mana","cyl","cone"}
+            while potionActive do
+                task.wait(10)
+                for _, obj in pairs(workspace:GetDescendants()) do
+                    if obj:IsA("BasePart") then
+                        local n = obj.Name:lower()
+                        local found = false
+                        for _, kw in ipairs(potionKeywords) do
+                            if n:find(kw) then found = true; break end
+                        end
+                        if not found and obj.Parent and obj.Parent:IsA("Model") then
+                            local model = obj.Parent
+                            local hasCylinder = false
+                            for _, child in pairs(model:GetChildren()) do
+                                if child:IsA("BasePart") then
+                                    local cname = child.Name:lower()
+                                    if cname:find("cylinder") or cname:find("cone") or cname:find("瓶") then hasCylinder = true end
+                                    if child:IsA("Part") and child.Shape == Enum.PartType.Cylinder then hasCylinder = true end
+                                end
+                            end
+                            if hasCylinder then
+                                local mname = model.Name:lower()
+                                for _, kw in ipairs(potionKeywords) do
+                                    if mname:find(kw) then found = true; break end
+                                end
+                                if not found then
+                                    for _, child in pairs(model:GetChildren()) do
+                                        if child:IsA("BasePart") then
+                                            local cn = child.Name:lower()
+                                            for _, kw in ipairs(potionKeywords) do
+                                                if cn:find(kw) then found = true; break end
+                                            end
+                                            if found then break end
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                        if found then
+                            if not obj:FindFirstAncestorOfClass("Model") or
+                               not obj:FindFirstAncestorOfClass("Model"):FindFirstChild("Humanoid") then
+                                applyHighlight(obj, Color3.fromRGB(180, 80, 255), "Potion")
+                            end
+                        end
+                    end
+                end
+            end
+        end)
+    end)
+
+    -- 📖 书籍
+    addToggle("📖 书籍透视", false, function(s)
+        bookActive = s
+        if bookThread then task.cancel(bookThread); bookThread = nil end
+        if not s then removeHighlights() return end
+        bookThread = task.spawn(function()
+            local bookNames = {"book","书籍","page","纸","note","笔记","日记","diary"}
+            while bookActive do
+                task.wait(10)
+                for _, obj in pairs(workspace:GetDescendants()) do
+                    if obj:IsA("BasePart") then
+                        local n = obj.Name:lower()
+                        local found = false
+                        for _, name in ipairs(bookNames) do
+                            if n:find(name) then found = true; break end
+                        end
+                        if found then
+                            if not obj:FindFirstAncestorOfClass("Model") or
+                               not obj:FindFirstAncestorOfClass("Model"):FindFirstChild("Humanoid") then
+                                applyHighlight(obj, Color3.fromRGB(50, 180, 255), "Book")
+                            end
+                        end
+                    end
+                end
+            end
+        end)
+    end)
+
+    -- 🪆 木偶
+    addToggle("🪆 木偶透视", false, function(s)
+        puppetActive = s
+        if puppetThread then task.cancel(puppetThread); puppetThread = nil end
+        if not s then removeHighlights() return end
+        puppetThread = task.spawn(function()
+            local puppetNames = {"puppet","木偶","doll","娃娃","marionette","提线"}
+            while puppetActive do
+                task.wait(10)
+                for _, obj in pairs(workspace:GetDescendants()) do
+                    if obj:IsA("BasePart") then
+                        local n = obj.Name:lower()
+                        local found = false
+                        for _, name in ipairs(puppetNames) do
+                            if n:find(name) then found = true; break end
+                        end
+                        if found then
+                            if not obj:FindFirstAncestorOfClass("Model") or
+                               not obj:FindFirstAncestorOfClass("Model"):FindFirstChild("Humanoid") then
+                                applyHighlight(obj, Color3.fromRGB(255, 100, 180), "Puppet")
+                            end
+                        end
+                    end
+                end
+            end
+        end)
+    end)
+
+    -- 🎎 五种颜色的娃娃
+    addToggle("🎎 五种颜色的娃娃透视", false, function(s)
+        dollActive = s
+        if dollThread then task.cancel(dollThread); dollThread = nil end
+        if not s then removeHighlights() return end
+        dollThread = task.spawn(function()
+            local dollKeywords = {"doll","洋娃娃","娃娃","red doll","blue doll","green doll","yellow doll","purple doll","pink doll","白色娃娃","黑色娃娃","红色娃娃","蓝色娃娃","绿色娃娃","黄色娃娃","紫色娃娃","五色","color doll","rainbow doll"}
+            while dollActive do
+                task.wait(10)
+                for _, obj in pairs(workspace:GetDescendants()) do
+                    if obj:IsA("BasePart") then
+                        local n = obj.Name:lower()
+                        local found = false
+                        for _, kw in ipairs(dollKeywords) do
+                            if n:find(kw) then found = true; break end
+                        end
+                        if found then
+                            if not obj:FindFirstAncestorOfClass("Model") or
+                               not obj:FindFirstAncestorOfClass("Model"):FindFirstChild("Humanoid") then
+                                local hue = (tick() * 0.1) % 1
+                                applyHighlight(obj, Color3.fromHSV(hue, 1, 1), "Doll")
+                            end
+                        end
+                    end
+                end
+            end
+        end)
+    end)
+
+    -- 👤 娃娃头
+    addToggle("👤 洋娃娃的头透视", false, function(s)
+        dollHeadActive = s
+        if dollHeadThread then task.cancel(dollHeadThread); dollHeadThread = nil end
+        if not s then removeHighlights() return end
+        dollHeadThread = task.spawn(function()
+            local headKeywords = {"head","头","头部","doll head","娃娃头","洋娃娃头","face","脸","hair","头发","eye","眼睛"}
+            while dollHeadActive do
+                task.wait(10)
+                for _, obj in pairs(workspace:GetDescendants()) do
+                    if obj:IsA("BasePart") then
+                        local n = obj.Name:lower()
+                        local found = false
+                        for _, kw in ipairs(headKeywords) do
+                            if n:find(kw) then found = true; break end
+                        end
+                        if not found and obj.Parent and obj.Parent:IsA("Model") then
+                            local mname = obj.Parent.Name:lower()
+                            if mname:find("doll") or mname:find("娃娃") then
+                                for _, kw in ipairs(headKeywords) do
+                                    if n:find(kw) then found = true; break end
+                                end
+                            end
+                        end
+                        if found then
+                            if not obj:FindFirstAncestorOfClass("Model") or
+                               not obj:FindFirstAncestorOfClass("Model"):FindFirstChild("Humanoid") then
+                                applyHighlight(obj, Color3.fromRGB(255, 200, 100), "DollHead")
+                            end
+                        end
+                    end
+                end
+            end
+        end)
+    end)
+
+    -- 🖼️ 画作
+    addToggle("🖼️ 画作透视 (识别所有画)", false, function(s)
+        paintingActive = s
+        if paintingThread then task.cancel(paintingThread); paintingThread = nil end
+        if not s then removeHighlights() return end
+        paintingThread = task.spawn(function()
+            local paintingKeywords = {"painting","画","画作","picture","图片","canvas","油画","art","艺术品","frame","画框","portrait","肖像","landscape","风景画","abstract","抽象画"}
+            while paintingActive do
+                task.wait(10)
+                for _, obj in pairs(workspace:GetDescendants()) do
+                    if obj:IsA("BasePart") then
+                        local n = obj.Name:lower()
+                        local found = false
+                        for _, kw in ipairs(paintingKeywords) do
+                            if n:find(kw) then found = true; break end
+                        end
+                        if found then
+                            if not obj:FindFirstAncestorOfClass("Model") or
+                               not obj:FindFirstAncestorOfClass("Model"):FindFirstChild("Humanoid") then
+                                applyHighlight(obj, Color3.fromRGB(255, 200, 255), "Painting")
+                            end
+                        end
+                    end
+                end
+            end
+        end)
+    end)
+
+    -- ====== 传送功能 ======
+    addDivider()
+    addTitle("📍 传送功能")
+
+    addButton("🗝️ 传送至最近钥匙", Color3.fromRGB(255, 200, 50), function()
+        teleportToNearest({"key","钥匙"}, "钥匙")
+    end)
+    addButton("📦 传送至最近箱子", Color3.fromRGB(255, 180, 80), function()
+        teleportToNearest({"chest","箱","箱子","crate"}, "箱子")
+    end)
+    addButton("🔒 传送至最近保险箱", Color3.fromRGB(50, 255, 150), function()
+        teleportToNearest({"safe","保险箱","vault","金库"}, "保险箱")
+    end)
+    addButton("💻 传送至最近代码", Color3.fromRGB(100, 200, 255), function()
+        teleportToNearest({"code","密码","数字","号码","keypad","键盘"}, "代码")
+    end)
+    addButton("🍽️ 传送至最近盘子", Color3.fromRGB(255, 200, 100), function()
+        teleportToNearest({"plate","盘子","碟子","dish"}, "盘子")
+    end)
+    addButton("🔥 传送至最近打火机", Color3.fromRGB(255, 150, 50), function()
+        teleportToNearest({"lighter","打火机","火机","点火器"}, "打火机")
+    end)
+    addButton("👶 传送至最近孩子", Color3.fromRGB(255, 100, 200), function()
+        teleportToNearest({"child","kid","孩子","小孩","儿子","女儿","baby","婴儿","dino kid","kraken kid","squid kid","koala kid","恐龙小子","海怪小子","鱿鱼小子","考拉小子"}, "孩子")
+    end)
+    addButton("🧪 传送至最近药水", Color3.fromRGB(180, 80, 255), function()
+        teleportToNearest({"potion","药水","bottle","瓶子","flask","vial","drink"}, "药水")
+    end)
+    addButton("📖 传送至最近书籍", Color3.fromRGB(50, 180, 255), function()
+        teleportToNearest({"book","书籍","note","笔记","diary"}, "书籍")
+    end)
+    addButton("🪆 传送至最近木偶", Color3.fromRGB(255, 100, 180), function()
+        teleportToNearest({"puppet","木偶","doll","娃娃"}, "木偶")
+    end)
+    addButton("🎎 传送至最近洋娃娃", Color3.fromRGB(255, 100, 200), function()
+        teleportToNearest({"doll","洋娃娃","娃娃"}, "洋娃娃")
+    end)
+    addButton("👤 传送至最近娃娃头", Color3.fromRGB(255, 200, 100), function()
+        teleportToNearest({"doll head","娃娃头","洋娃娃头","head"}, "娃娃头")
+    end)
+    addButton("🖼️ 传送至最近画作", Color3.fromRGB(200, 100, 255), function()
+        teleportToNearest({"painting","画","画作","picture"}, "画作")
+    end)
+
+    -- 特殊功能：正确传送门
     addDivider()
     addTitle("🎯 特殊功能")
 
-    -- ========== 5. 找正确的传送门 ==========
     local function findCorrectPortal()
-        if correctPortalHL then
-            correctPortalHL:Destroy()
-            correctPortalHL = nil
-        end
+        if correctPortalHL then correctPortalHL:Destroy(); correctPortalHL = nil end
         correctPortal = nil
-
         local portals = {}
         for _, obj in pairs(workspace:GetDescendants()) do
             if obj:IsA("BasePart") then
                 local n = obj.Name:lower()
                 local isPortal = false
-
-                if n:find("vortex") or n:find("portal") or n:find("传送门") or
-                   n:find("teleport") or n:find("gate") then
-                    isPortal = true
-                end
-
+                if n:find("vortex") or n:find("portal") or n:find("传送门") or n:find("teleport") or n:find("gate") then isPortal = true end
                 if obj:IsA("Part") and obj.Shape == Enum.PartType.Cylinder then
-                    if n:find("portal") or n:find("vortex") then
-                        isPortal = true
-                    end
+                    if n:find("portal") or n:find("vortex") then isPortal = true end
                 end
-
                 if not isPortal then
                     for _, child in pairs(obj:GetChildren()) do
                         if child:IsA("BasePart") then
                             local cn = child.Name:lower()
-                            if cn:find("vortex") or cn:find("portal") then
-                                isPortal = true
-                                break
-                            end
+                            if cn:find("vortex") or cn:find("portal") then isPortal = true; break end
                         end
                     end
                 end
-
                 if isPortal then
                     if not obj:FindFirstAncestorOfClass("Model") or
                        not obj:FindFirstAncestorOfClass("Model"):FindFirstChild("Humanoid") then
@@ -1518,61 +1870,29 @@ local function loadPeta()
                 end
             end
         end
-
-        if #portals == 0 then
-            print("⚠️ 未找到任何传送门")
-            return
-        end
-
-        local bestPortal = nil
-        local bestScore = 0
-
+        if #portals == 0 then print("⚠️ 未找到任何传送门") return end
+        local bestPortal, bestScore = nil, 0
         for _, portal in ipairs(portals) do
             local score = 0
             if portal.BrickColor then
                 local bc = portal.BrickColor.Name:lower()
-                if bc:find("green") or bc:find("blue") or bc:find("yellow") or bc:find("cyan") then
-                    score = score + 3
-                end
-                if bc:find("purple") or bc:find("violet") or bc:find("magenta") then
-                    score = score + 2
-                end
+                if bc:find("green") or bc:find("blue") or bc:find("yellow") or bc:find("cyan") then score = score + 3 end
+                if bc:find("purple") or bc:find("violet") or bc:find("magenta") then score = score + 2 end
             end
-            if portal:GetAttribute("Correct") or portal:GetAttribute("True") or portal:GetAttribute("正确") then
-                score = score + 10
-            end
-            if portal.Position.Y > 0 and portal.Position.Y < 50 then
-                score = score + 2
-            end
+            if portal:GetAttribute("Correct") or portal:GetAttribute("True") or portal:GetAttribute("正确") then score = score + 10 end
+            if portal.Position.Y > 0 and portal.Position.Y < 50 then score = score + 2 end
             local n = portal.Name:lower()
-            if n:find("correct") or n:find("true") or n:find("正") or n:find("真") then
-                score = score + 8
-            end
-            if n:find("vortex") then
-                score = score + 5
-            end
-            if portal:IsA("Part") and portal.Shape == Enum.PartType.Cylinder then
-                score = score + 4
-            end
-
-            if score > bestScore then
-                bestScore = score
-                bestPortal = portal
-            end
+            if n:find("correct") or n:find("true") or n:find("正") or n:find("真") then score = score + 8 end
+            if n:find("vortex") then score = score + 5 end
+            if portal:IsA("Part") and portal.Shape == Enum.PartType.Cylinder then score = score + 4 end
+            if score > bestScore then bestScore, bestPortal = score, portal end
         end
-
         if not bestPortal and #portals > 0 then
             for _, portal in ipairs(portals) do
-                if portal.Name:lower():find("vortex") then
-                    bestPortal = portal
-                    break
-                end
+                if portal.Name:lower():find("vortex") then bestPortal = portal; break end
             end
-            if not bestPortal then
-                bestPortal = portals[1]
-            end
+            if not bestPortal then bestPortal = portals[1] end
         end
-
         if bestPortal then
             correctPortal = bestPortal
             correctPortalHL = applyHighlight(bestPortal, Color3.fromRGB(0, 255, 100), "CorrectPortal")
@@ -1590,148 +1910,48 @@ local function loadPeta()
         findCorrectPortal()
     end)
 
-    -- ========== 6. 清除所有高亮 ==========
     addButton("🧹 清除所有高亮", Color3.fromRGB(180, 40, 40), function()
-        keyActive = false
-        organActive = false
-        portalActive = false
-        soulActive = false
-
+        keyActive, chestActive, safeActive, codeActive = false, false, false, false
+        plateActive, lighterActive = false, false
+        childActive = false
+        organActive, portalActive, soulActive = false, false, false
+        potionActive, bookActive, puppetActive, monsterActive = false, false, false, false
+        dollActive, dollHeadActive, paintingActive = false, false, false
         if keyThread then task.cancel(keyThread); keyThread = nil end
+        if chestThread then task.cancel(chestThread); chestThread = nil end
+        if safeThread then task.cancel(safeThread); safeThread = nil end
+        if codeThread then task.cancel(codeThread); codeThread = nil end
+        if plateThread then task.cancel(plateThread); plateThread = nil end
+        if lighterThread then task.cancel(lighterThread); lighterThread = nil end
+        if childThread then task.cancel(childThread); childThread = nil end
         if organThread then task.cancel(organThread); organThread = nil end
         if portalThread then task.cancel(portalThread); portalThread = nil end
         if soulThread then task.cancel(soulThread); soulThread = nil end
-
+        if potionThread then task.cancel(potionThread); potionThread = nil end
+        if bookThread then task.cancel(bookThread); bookThread = nil end
+        if puppetThread then task.cancel(puppetThread); puppetThread = nil end
+        if monsterThread then task.cancel(monsterThread); monsterThread = nil end
+        if dollThread then task.cancel(dollThread); dollThread = nil end
+        if dollHeadThread then task.cancel(dollHeadThread); dollHeadThread = nil end
+        if paintingThread then task.cancel(paintingThread); paintingThread = nil end
         removeHighlights()
-
-        if correctPortalHL then
-            correctPortalHL:Destroy()
-            correctPortalHL = nil
-        end
+        if correctPortalHL then correctPortalHL:Destroy(); correctPortalHL = nil end
         correctPortal = nil
-
         print("🧹 已清除所有高亮")
     end)
 
     addDivider()
-    addLabel("💡 钥匙: 金色 | 器官: 红色 | 传送门: 蓝色")
-    addLabel("💡 灵魂火焰: 橙色 | 正确传送门: 亮绿色")
-    addLabel("💡 点击「找正确的传送门」自动识别漩涡传送门")
+    addLabel("💡 钥匙: 金色 | 箱子: 橙色 | 保险箱: 亮绿 | 代码: 淡蓝")
+    addLabel("💡 盘子: 淡黄 | 打火机: 橙色 | 孩子: 粉红 | 器官: 红色")
+    addLabel("💡 传送门: 蓝色 | 灵魂火焰: 橙色 | 怪物: 红色")
+    addLabel("💡 药水: 紫色 | 书籍: 蓝色 | 木偶: 粉色")
+    addLabel("💡 五种颜色的娃娃: 彩虹色 | 娃娃头: 淡黄色 | 画作: 淡紫色")
+    addLabel("💡 所有透视每10秒扫描一次，不卡顿")
 
-    panel.CanvasSize = UDim2.new(0,0,0,#panel:GetChildren()*32+20)
+    panel.CanvasSize = UDim2.new(0, 0, 0, #panel:GetChildren() * 32 + 20)
 end
-
 -- ============================================================
---  面板：飞行（无敌少侠飞行）
--- ============================================================
-local function loadFlight()
-    clearPanel()
-    addTitle("✈️ 无敌少侠飞行 (稳定版)")
-    local flying = false
-    local flySpeed = 80
-    local bv = nil
-    local bg = nil
-    local conn = nil
-
-    local function startFly()
-        local c = player.Character
-        if not c then return end
-        local hrp = c:FindFirstChild("HumanoidRootPart")
-        if not hrp then return end
-        c.Humanoid.PlatformStand = true
-        c.Humanoid.WalkSpeed = 0
-        c.Humanoid.JumpPower = 0
-
-        bv = Instance.new("BodyVelocity", hrp)
-        bv.MaxForce = Vector3.new(1e9, 1e9, 1e9)
-        bv.Velocity = Vector3.new(0,0,0)
-
-        bg = Instance.new("BodyGyro", hrp)
-        bg.MaxTorque = Vector3.new(1e9, 1e9, 1e9)
-        bg.P = 1e5
-        bg.CFrame = hrp.CFrame
-
-        flying = true
-        conn = runService.Heartbeat:Connect(function()
-            if not flying then return end
-            local c2 = player.Character
-            if not c2 then return end
-            local hrp2 = c2:FindFirstChild("HumanoidRootPart")
-            if not hrp2 then return end
-            local move = Vector3.new(0,0,0)
-            local cam = workspace.CurrentCamera
-            if not cam then return end
-
-            if userInput:IsKeyDown(Enum.KeyCode.W) then
-                move = move + cam.CFrame.LookVector * Vector3.new(1,0,1)
-            end
-            if userInput:IsKeyDown(Enum.KeyCode.S) then
-                move = move - cam.CFrame.LookVector * Vector3.new(1,0,1)
-            end
-            if userInput:IsKeyDown(Enum.KeyCode.A) then
-                move = move - cam.CFrame.RightVector * Vector3.new(1,0,1)
-            end
-            if userInput:IsKeyDown(Enum.KeyCode.D) then
-                move = move + cam.CFrame.RightVector * Vector3.new(1,0,1)
-            end
-            if userInput:IsKeyDown(Enum.KeyCode.Space) then
-                move = move + Vector3.new(0,1,0)
-            end
-            if userInput:IsKeyDown(Enum.KeyCode.LeftShift) then
-                move = move - Vector3.new(0,1,0)
-            end
-
-            if move.Magnitude > 0 then
-                move = move.Unit * flySpeed
-            end
-            bv.Velocity = move
-
-            if move.Magnitude > 1 then
-                bg.CFrame = CFrame.new(hrp2.Position, hrp2.Position + move)
-            end
-        end)
-    end
-
-    local function stopFly()
-        flying = false
-        if conn then conn:Disconnect() end
-        if bv then bv:Destroy() end
-        if bg then bg:Destroy() end
-        local c = player.Character
-        if c then
-            c.Humanoid.PlatformStand = false
-            c.Humanoid.WalkSpeed = 16
-            c.Humanoid.JumpPower = 50
-        end
-    end
-
-    addToggle("飞行模式 (WASD/空格/Shift)", false, function(s)
-        if s then
-            startFly()
-        else
-            stopFly()
-        end
-    end)
-
-    addDivider()
-    addTitle("🚀 速度调节")
-    local spLabel = addLabel("当前: 80 m/s")
-    addButton("+5", Color3.fromRGB(60,180,60), function()
-        flySpeed = math.min(flySpeed+5, 300)
-        spLabel.Text = "当前: " .. flySpeed .. " m/s"
-    end)
-    addButton("-5", Color3.fromRGB(180,60,60), function()
-        flySpeed = math.max(flySpeed-5, 20)
-        spLabel.Text = "当前: " .. flySpeed .. " m/s"
-    end)
-
-    addDivider()
-    addLabel("WASD 水平 | 空格上升 | Shift下降")
-    panel.CanvasSize = UDim2.new(0,0,0,#panel:GetChildren()*32+20)
-end
-
--- ============================================================
---  面板：甩飞（静默甩飞 + 传送 + 传送甩飞 + 循环甩飞）
+--  面板：甩飞
 -- ============================================================
 local function loadFlyOff()
     clearPanel()
@@ -2096,7 +2316,7 @@ local function loadFlyOff()
             btn.Text = p.Name
             btn.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
             btn.BackgroundTransparency = 0.5
-            btn.TextColor3 = Color3.fromRGB(0, 0, 0)
+            btn.TextColor3 = Color3.fromRGB(255, 255, 255)
             btn.Font = Enum.Font.SourceSans
             btn.TextSize = 12
             btn.BorderSizePixel = 0
@@ -2163,7 +2383,7 @@ local function loadFlyOff()
     loopBtn.BorderSizePixel = 1
     loopBtn.BorderColor3 = Color3.fromRGB(0,200,0)
     loopBtn.Text = "🔄 循环甩飞 OFF"
-    loopBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
+    loopBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     loopBtn.TextSize = 12
     loopBtn.Font = Enum.Font.Gotham
     local c = Instance.new("UICorner")
@@ -2189,7 +2409,7 @@ local function loadFlyOff()
     statusLabel.Position = UDim2.new(0,2,0,#panel:GetChildren()*32+4)
     statusLabel.BackgroundTransparency = 1
     statusLabel.Text = "等待选择玩家..."
-    statusLabel.TextColor3 = Color3.fromRGB(0, 0, 0)
+    statusLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     statusLabel.TextSize = 11
     statusLabel.Font = Enum.Font.Gotham
     statusLabel.TextXAlignment = Enum.TextXAlignment.Center
@@ -2209,7 +2429,7 @@ local function loadFlyOff()
 end
 
 -- ============================================================
---  面板：僵尸塔（杀戮光环 + 无限子弹改进版）
+--  面板：僵尸塔
 -- ============================================================
 local function loadZombieTower()
     clearPanel()
@@ -2317,7 +2537,7 @@ local function loadZombieTower()
 
     local infAmmoActive = false
     local infAmmoConnections = {}
-    local statusLabel = addLabel("无限子弹: OFF", Color3.fromRGB(0, 0, 0))
+    local statusLabel = addLabel("无限子弹: OFF", Color3.fromRGB(255, 255, 255))
 
     local function lockAmmoInTool(tool)
         if not tool or not tool:IsA("Tool") then return end
@@ -2404,12 +2624,12 @@ local function loadZombieTower()
         if s then
             initAmmoSystem()
             statusLabel.Text = "无限子弹: ON (改进)"
-            statusLabel.TextColor3 = Color3.fromRGB(0, 0, 0)
+            statusLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
             print("无限子弹已开启（改进版）")
         else
             cleanAmmoConnections()
             statusLabel.Text = "无限子弹: OFF"
-            statusLabel.TextColor3 = Color3.fromRGB(0, 0, 0)
+            statusLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
             print("无限子弹已关闭")
         end
     end)
@@ -2421,77 +2641,711 @@ local function loadZombieTower()
 end
 
 -- ============================================================
---  标签切换
+--  面板：森林·99夜（优化版）
 -- ============================================================
-for i,btn in ipairs(btnList) do
-    local idx = i
-    btn.MouseButton1Click:Connect(function()
-        for j,b in ipairs(btnList) do
-            b.BackgroundColor3 = (j==idx) and Color3.fromRGB(30,200,255) or Color3.fromRGB(20,40,60)
-            b.BackgroundTransparency = 0.6
-            b.BorderColor3 = (j==idx) and Color3.fromRGB(30,200,255) or Color3.fromRGB(50,50,70)
-            b.TextColor3 = Color3.fromRGB(0, 0, 0)
+local function loadForest()
+    clearPanel()
+    addTitle("🌲 森林 · 99夜")
+
+    -- ---- 伐木光环 ----
+    addTitle("🪓 伐木光环 (优化)")
+    local chopActive = false
+    local chopRange = 30
+    local chopConn = nil
+    local chopInterval = 0.3  -- 检查间隔（秒）
+
+    local function getTrees()
+        -- 优先使用专门的容器
+        local treeContainer = workspace:FindFirstChild("Trees") or workspace:FindFirstChild("Tree")
+        if treeContainer then
+            local results = {}
+            local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+            if not hrp then return {} end
+            for _, obj in pairs(treeContainer:GetChildren()) do
+                if obj:IsA("BasePart") and (hrp.Position - obj.Position).Magnitude <= chopRange then
+                    table.insert(results, obj)
+                end
+            end
+            return results
         end
-        if idx == 1 then loadGeneral()
-        elseif idx == 2 then loadMM2()
-        elseif idx == 3 then loadPeta()
-        elseif idx == 4 then loadFlight()
-        elseif idx == 5 then loadFlyOff()
-        elseif idx == 6 then loadZombieTower()
-        elseif idx == 7 then loadIntro()
+
+        -- 回退方案：全搜索但限制距离
+        local char = player.Character
+        if not char then return {} end
+        local hrp = char:FindFirstChild("HumanoidRootPart")
+        if not hrp then return {} end
+        local found = {}
+        for _, obj in pairs(workspace:GetDescendants()) do
+            if obj:IsA("BasePart") then
+                local n = obj.Name:lower()
+                if n:find("tree") or n:find("wood") or n:find("log") or n:find("树干") or n:find("木") then
+                    if not obj:FindFirstAncestorOfClass("Model") or
+                       not obj:FindFirstAncestorOfClass("Model"):FindFirstChild("Humanoid") then
+                        local dist = (hrp.Position - obj.Position).Magnitude
+                        if dist <= chopRange then
+                            table.insert(found, obj)
+                        end
+                    end
+                end
+            end
+        end
+        return found
+    end
+
+    local function chopTree(tree)
+        local char = player.Character
+        if not char then return end
+        local tool = char:FindFirstChildOfClass("Tool")
+        if tool then
+            pcall(function() tool:Activate() end)
+            if tree:IsA("BasePart") and tree.Parent and tree.Parent:IsA("Model") then
+                for _, child in pairs(tree.Parent:GetDescendants()) do
+                    if child:IsA("ClickDetector") then
+                        child:FireClick()
+                        break
+                    end
+                end
+            end
+        else
+            local clickDetector = tree:FindFirstChildOfClass("ClickDetector")
+            if clickDetector then
+                clickDetector:FireClick()
+            end
+        end
+    end
+
+    addToggle("🌲 伐木光环 (砍树)", false, function(s)
+        chopActive = s
+        if chopConn then chopConn:Disconnect(); chopConn = nil end
+        if s then
+            print("🪓 伐木光环已开启，范围: " .. chopRange .. " 格，检查间隔 " .. chopInterval .. "秒")
+            chopConn = runService.Heartbeat:Connect(function()
+                if not chopActive then return end
+                -- 限频
+                if not chopConn._lastTime then chopConn._lastTime = 0 end
+                if tick() - chopConn._lastTime < chopInterval then return end
+                chopConn._lastTime = tick()
+
+                local trees = getTrees()
+                for _, tree in ipairs(trees) do
+                    chopTree(tree)
+                end
+            end)
+        else
+            print("🪓 伐木光环已关闭")
+        end
+    end)
+
+    local chopRangeLabel = addLabel("当前伐木范围: " .. chopRange .. " 格")
+    addButton("伐木范围 +5", Color3.fromRGB(60,180,60), function()
+        chopRange = math.min(chopRange + 5, 100)
+        chopRangeLabel.Text = "当前伐木范围: " .. chopRange .. " 格"
+    end)
+    addButton("伐木范围 -5", Color3.fromRGB(180,60,60), function()
+        chopRange = math.max(chopRange - 5, 10)
+        chopRangeLabel.Text = "当前伐木范围: " .. chopRange .. " 格"
+    end)
+
+    addDivider()
+
+    -- ---- 生物杀戮光环 ----
+    addTitle("⚔️ 生物杀戮光环 (优化)")
+    local killActive = false
+    local killRange = 30
+    local killCooldown = 0.3
+    local killConn = nil
+    local lastAttackTime = 0
+    local killInterval = 0.2
+
+    local function getMonsters()
+        -- 优先查找怪物容器
+        local monsterContainer = workspace:FindFirstChild("Monsters") or workspace:FindFirstChild("Enemies") or workspace:FindFirstChild("Zombies")
+        if monsterContainer then
+            local results = {}
+            local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+            if not hrp then return {} end
+            for _, obj in pairs(monsterContainer:GetChildren()) do
+                if obj:IsA("Model") and obj:FindFirstChildOfClass("Humanoid") then
+                    local root = obj:FindFirstChild("HumanoidRootPart")
+                    if root and (hrp.Position - root.Position).Magnitude <= killRange then
+                        table.insert(results, root)
+                    end
+                end
+            end
+            return results
+        end
+
+        -- 回退全搜索
+        local char = player.Character
+        if not char then return {} end
+        local hrp = char:FindFirstChild("HumanoidRootPart")
+        if not hrp then return {} end
+        local found = {}
+        for _, obj in pairs(workspace:GetDescendants()) do
+            if obj:IsA("BasePart") then
+                local n = obj.Name:lower()
+                local matched = false
+                local keywords = {"monster","zombie","enemy","creature","ghost","demon","skeleton","怪物","僵尸","敌人","生物"}
+                for _, kw in ipairs(keywords) do
+                    if n:find(kw) then matched = true break end
+                end
+                if not matched and obj.Parent and obj.Parent:IsA("Model") then
+                    local mname = obj.Parent.Name:lower()
+                    for _, kw in ipairs(keywords) do
+                        if mname:find(kw) then matched = true break end
+                    end
+                    if not matched and obj.Parent:FindFirstChildOfClass("Humanoid") then
+                        local model = obj.Parent
+                        if model ~= player.Character then matched = true end
+                    end
+                end
+                if matched then
+                    if not obj:FindFirstAncestorOfClass("Model") or
+                       not obj:FindFirstAncestorOfClass("Model"):FindFirstChild("Humanoid") then
+                        local dist = (hrp.Position - obj.Position).Magnitude
+                        if dist <= killRange then
+                            table.insert(found, obj)
+                        end
+                    end
+                end
+            end
+        end
+        return found
+    end
+
+    local function attackMonster(monster)
+        local char = player.Character
+        if not char then return end
+        local tool = char:FindFirstChildOfClass("Tool")
+        if tool then pcall(function() tool:Activate() end) end
+        if monster:IsA("BasePart") then
+            for _, child in pairs(monster:GetDescendants()) do
+                if child:IsA("ClickDetector") then child:FireClick() break end
+            end
+        end
+        local model = monster
+        if monster.Parent and monster.Parent:IsA("Model") then model = monster.Parent end
+        local hum = model:FindFirstChildOfClass("Humanoid")
+        if hum and hum.Health > 0 then
+            local remote = game:GetService("ReplicatedStorage"):FindFirstChild("Attack")
+            if remote then pcall(function() remote:FireServer(model) end) end
+        end
+    end
+
+    addToggle("⚔️ 生物杀戮光环", false, function(s)
+        killActive = s
+        if killConn then killConn:Disconnect(); killConn = nil end
+        if s then
+            print("⚔️ 生物杀戮光环已开启，范围: " .. killRange .. " 格，攻击间隔 " .. killCooldown .. "s")
+            killConn = runService.Heartbeat:Connect(function()
+                if not killActive then return end
+                if tick() - lastAttackTime < killCooldown then return end
+                -- 限频检查
+                if not killConn._lastCheck then killConn._lastCheck = 0 end
+                if tick() - killConn._lastCheck < killInterval then return end
+                killConn._lastCheck = tick()
+
+                local monsters = getMonsters()
+                for _, mon in ipairs(monsters) do
+                    attackMonster(mon)
+                end
+                lastAttackTime = tick()
+            end)
+        else
+            print("⚔️ 生物杀戮光环已关闭")
+        end
+    end)
+
+    local killRangeLabel = addLabel("当前杀戮范围: " .. killRange .. " 格")
+    addButton("杀戮范围 +5", Color3.fromRGB(255,150,50), function()
+        killRange = math.min(killRange + 5, 100)
+        killRangeLabel.Text = "当前杀戮范围: " .. killRange .. " 格"
+    end)
+    addButton("杀戮范围 -5", Color3.fromRGB(255,80,80), function()
+        killRange = math.max(killRange - 5, 10)
+        killRangeLabel.Text = "当前杀戮范围: " .. killRange .. " 格"
+    end)
+
+    local speedLabel = addLabel("当前攻击间隔: " .. (math.floor(killCooldown * 1000)) .. "ms")
+    addButton("⚡ 攻速 + (间隔-50ms)", Color3.fromRGB(60,180,60), function()
+        killCooldown = math.max(killCooldown - 0.05, 0.05)
+        speedLabel.Text = "当前攻击间隔: " .. (math.floor(killCooldown * 1000)) .. "ms"
+    end)
+    addButton("⚡ 攻速 - (间隔+50ms)", Color3.fromRGB(180,60,60), function()
+        killCooldown = math.min(killCooldown + 0.05, 1.0)
+        speedLabel.Text = "当前攻击间隔: " .. (math.floor(killCooldown * 1000)) .. "ms"
+    end)
+
+    addDivider()
+
+    -- ---- 物品透视与传送（优化ESP更新频率） ----
+    local espEnabled = false
+    local espConn = nil
+    local espInterval = 0.5  -- 每0.5秒更新一次高亮
+
+    -- 这里保留原有 keyword 列表（略，与之前相同）
+    local WEAPON_KEYWORDS = {"chainsaw","cultist king mace","good axe","ice axe","ice sword","infernal sword","katana","laser sword","morningstar","obsidiron hammer","old axe","poison spear","scythe","spear","strong axe","trident","admin axe","blowpipe","bouncing blade","crossbow","flamethrower","frozen shuriken","infernal crossbow","kunai","laser cannon","ray gun","revolver","rifle","snowball","tactical shotgun","wildfire","witch potion","admin gun","friendly gun","电锯","冰剑","武士刀","激光剑","晨星","锤","斧","枪","步枪","左轮","霰弹枪","喷火器","弩","矛","三叉戟"}
+    local CURRENCY_KEYWORDS = {"coin","coins","gold","gold bar","diamond","gems","金币","沃伦金币","神秘纽扣","钻石","宝石","coin stack","currency"}
+    local TOOL_KEYWORDS = {"sack","axe","flute","fishing rod","flashlight","pickaxe","old sack","good sack","infernal sack","giant sack","admin sack","old axe","good axe","ice axe","strong axe","admin axe","old rod","good rod","麻袋","背包","手电筒","鱼竿","镐","斧头"}
+    local MATERIAL_KEYWORDS = {"wood","log","plank","stone","iron","ore","scrap","metal","fuel","gas","seed","food","pelt","leather","fiber","rope","木头","原木","木板","石头","铁","矿石","废料","金属","燃料","种子","食物","皮毛","皮革","绳子"}
+    local CHILD_KEYWORDS = {"dino kid","kraken kid","squid kid","koala kid","恐龙小子","海怪小子","鱿鱼小子","考拉小子","child","kid","孩子","小孩"}
+    local ALL_ITEM_KEYWORDS = {}
+    for _, v in ipairs(WEAPON_KEYWORDS) do table.insert(ALL_ITEM_KEYWORDS, v) end
+    for _, v in ipairs(CURRENCY_KEYWORDS) do table.insert(ALL_ITEM_KEYWORDS, v) end
+    for _, v in ipairs(TOOL_KEYWORDS) do table.insert(ALL_ITEM_KEYWORDS, v) end
+    for _, v in ipairs(MATERIAL_KEYWORDS) do table.insert(ALL_ITEM_KEYWORDS, v) end
+
+    local function isItemMatch(obj, keywords)
+        if not obj or not obj:IsA("BasePart") then return false end
+        local name = obj.Name:lower()
+        if obj:FindFirstAncestorOfClass("Model") and obj:FindFirstAncestorOfClass("Model") == player.Character then
+            return false
+        end
+        for _, kw in ipairs(keywords) do
+            if name:find(kw:lower()) then return true end
+        end
+        return false
+    end
+
+    local function getItemsByKeywords(keywords)
+        local results = {}
+        for _, obj in pairs(workspace:GetDescendants()) do
+            if obj:IsA("BasePart") and isItemMatch(obj, keywords) then
+                table.insert(results, obj)
+            end
+        end
+        return results
+    end
+
+    local function teleportItemsToPlayer(items)
+        local char = player.Character
+        if not char then print("⚠️ 角色不存在"); return 0 end
+        local hrp = char:FindFirstChild("HumanoidRootPart")
+        if not hrp then print("⚠️ HumanoidRootPart 不存在"); return 0 end
+        local count = 0
+        local targetPos = hrp.Position + hrp.CFrame.LookVector * 3 + Vector3.new(0, 1, 0)
+        for i, obj in ipairs(items) do
+            local offset = Vector3.new(math.random(-2,2), math.random(0,1), math.random(-2,2))
+            obj.Position = targetPos + offset
+            obj.AssemblyLinearVelocity = Vector3.new(0,0,0)
+            obj.AssemblyAngularVelocity = Vector3.new(0,0,0)
+            count = count + 1
+            if i % 5 == 0 then task.wait(0.01) end
+        end
+        return count
+    end
+
+    -- ESP 创建函数（略，与原相同）
+    local function createESP(obj, color, label)
+        if not obj or not obj:IsA("BasePart") then return end
+        for _, child in pairs(obj:GetChildren()) do
+            if child.Name == "ItemESP" or child.Name == "ItemLabel" then child:Destroy() end
+        end
+        local hl = Instance.new("Highlight")
+        hl.Name = "ItemESP"
+        hl.FillColor = color
+        hl.FillTransparency = 0.6
+        hl.OutlineColor = color
+        hl.OutlineTransparency = 0.1
+        hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+        hl.Parent = obj
+        local bg = Instance.new("BillboardGui")
+        bg.Name = "ItemLabel"
+        bg.Size = UDim2.new(0, 150, 0, 25)
+        bg.AlwaysOnTop = true
+        bg.StudsOffset = Vector3.new(0, 3, 0)
+        bg.Parent = obj
+        local lbl = Instance.new("TextLabel")
+        lbl.Size = UDim2.new(1, 0, 1, 0)
+        lbl.BackgroundTransparency = 1
+        lbl.Text = label or obj.Name
+        lbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+        lbl.TextScaled = true
+        lbl.Font = Enum.Font.GothamBold
+        lbl.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+        lbl.TextStrokeTransparency = 0.3
+        lbl.Parent = bg
+    end
+
+    local function clearESP()
+        for _, obj in pairs(workspace:GetDescendants()) do
+            if obj:IsA("Highlight") and obj.Name == "ItemESP" then obj:Destroy() end
+            if obj:IsA("BillboardGui") and obj.Name == "ItemLabel" then obj:Destroy() end
+        end
+    end
+
+    local function updateESP()
+        clearESP()
+        if not espEnabled then return end
+        local weapons = getItemsByKeywords(WEAPON_KEYWORDS)
+        for _, obj in ipairs(weapons) do createESP(obj, Color3.fromRGB(255,50,50), "🔫 "..obj.Name) end
+        local coins = getItemsByKeywords(CURRENCY_KEYWORDS)
+        for _, obj in ipairs(coins) do createESP(obj, Color3.fromRGB(255,215,0), "💰 "..obj.Name) end
+        local tools = getItemsByKeywords(TOOL_KEYWORDS)
+        for _, obj in ipairs(tools) do createESP(obj, Color3.fromRGB(50,150,255), "🔧 "..obj.Name) end
+        local materials = getItemsByKeywords(MATERIAL_KEYWORDS)
+        for _, obj in ipairs(materials) do createESP(obj, Color3.fromRGB(50,255,100), "📦 "..obj.Name) end
+        local children = getItemsByKeywords(CHILD_KEYWORDS)
+        for _, obj in ipairs(children) do createESP(obj, Color3.fromRGB(255,100,200), "👶 "..obj.Name) end
+    end
+
+    addToggle("🟢 物品透视 (高亮所有物品)", false, function(s)
+        espEnabled = s
+        if espConn then espConn:Disconnect(); espConn = nil end
+        if s then
+            updateESP()
+            espConn = runService.Heartbeat:Connect(function()
+                if not espEnabled then return end
+                if not espConn._lastESP or tick() - espConn._lastESP >= espInterval then
+                    espConn._lastESP = tick()
+                    updateESP()
+                end
+            end)
+            print("🟢 物品透视已开启 (更新间隔 " .. espInterval .. "s)")
+        else
+            clearESP()
+            print("🔴 物品透视已关闭")
+        end
+    end)
+
+    addDivider()
+    addTitle("📦 传送功能")
+    addButton("🔫 传送所有武器到身边", Color3.fromRGB(255,80,80), function()
+        local items = getItemsByKeywords(WEAPON_KEYWORDS)
+        local count = teleportItemsToPlayer(items)
+        print("✅ 已传送 " .. count .. " 件武器到身边")
+    end)
+    addButton("💰 传送所有金币到身边", Color3.fromRGB(255,215,0), function()
+        local items = getItemsByKeywords(CURRENCY_KEYWORDS)
+        local count = teleportItemsToPlayer(items)
+        print("✅ 已传送 " .. count .. " 个金币/货币到身边")
+    end)
+    addButton("🔧 传送所有工具到身边", Color3.fromRGB(50,150,255), function()
+        local items = getItemsByKeywords(TOOL_KEYWORDS)
+        local count = teleportItemsToPlayer(items)
+        print("✅ 已传送 " .. count .. " 件工具到身边")
+    end)
+    addButton("📦 传送所有物品到身边", Color3.fromRGB(100,200,255), function()
+        local items = getItemsByKeywords(ALL_ITEM_KEYWORDS)
+        local count = teleportItemsToPlayer(items)
+        print("✅ 已传送 " .. count .. " 个物品到身边")
+    end)
+    addButton("👶 传送所有孩子到身边", Color3.fromRGB(255,100,200), function()
+        local items = getItemsByKeywords(CHILD_KEYWORDS)
+        local count = teleportItemsToPlayer(items)
+        print("✅ 已传送 " .. count .. " 个孩子到身边")
+    end)
+
+    addDivider()
+    addTitle("🌱 自动种植 (优化)")
+    local plantActive = false
+    local plantRadius = 8
+    local plantCount = 16
+    local plantDelay = 0.5
+    local plantConn = nil
+    local isPlanting = false
+    local plantInterval = 60  -- 每60秒自动种植一次
+
+    local function getSaplings()
+        local backpack = player:FindFirstChild("Backpack")
+        if not backpack then return {} end
+        local saplings = {}
+        for _, item in pairs(backpack:GetChildren()) do
+            if item:IsA("Tool") and item.Name:lower():find("sapling") then
+                table.insert(saplings, item)
+            end
+        end
+        return saplings
+    end
+
+    local function getCampfirePosition()
+        for _, obj in pairs(workspace:GetDescendants()) do
+            if obj:IsA("BasePart") and obj.Name:lower():find("campfire") then
+                return obj.Position
+            end
+        end
+        local char = player.Character
+        if char then
+            local hrp = char:FindFirstChild("HumanoidRootPart")
+            if hrp then return hrp.Position end
+        end
+        return nil
+    end
+
+    local function performCirclePlanting()
+        if isPlanting then return end
+        isPlanting = true
+
+        local saplings = getSaplings()
+        if #saplings == 0 then
+            print("⚠️ 背包中没有树苗 (Sapling)")
+            isPlanting = false
+            return
+        end
+
+        local center = getCampfirePosition()
+        if not center then
+            print("⚠️ 未找到篝火位置")
+            isPlanting = false
+            return
+        end
+
+        local char = player.Character
+        if not char then isPlanting = false; return end
+        local hrp = char:FindFirstChild("HumanoidRootPart")
+        if not hrp then isPlanting = false; return end
+
+        local planted = 0
+        for i = 1, math.min(plantCount, #saplings) do
+            local angle = (i / plantCount) * 2 * math.pi
+            local x = center.X + plantRadius * math.cos(angle)
+            local z = center.Z + plantRadius * math.sin(angle)
+            local targetPos = Vector3.new(x, center.Y + 1, z)
+
+            hrp.CFrame = CFrame.new(targetPos)
+            task.wait(0.1)
+
+            local sapling = saplings[i]
+            if sapling and sapling.Parent == player.Backpack then
+                sapling.Parent = char
+                task.wait(0.1)
+                pcall(function() sapling:Activate() end)
+                task.wait(plantDelay)
+                planted = planted + 1
+            end
+        end
+
+        print("🌱 已种植 " .. planted .. " 棵树苗（圆形，半径 " .. plantRadius .. "）")
+        isPlanting = false
+    end
+
+    addToggle("🌱 自动种植 (圆形)", false, function(s)
+        plantActive = s
+        if plantConn then plantConn:Disconnect(); plantConn = nil end
+        if s then
+            print("🌱 自动种植已开启（每 " .. plantInterval .. " 秒执行一次）")
+            task.spawn(performCirclePlanting)
+            plantConn = runService.Heartbeat:Connect(function()
+                if not plantActive then return end
+                if not plantConn._lastPlant then plantConn._lastPlant = 0 end
+                if tick() - plantConn._lastPlant >= plantInterval then
+                    plantConn._lastPlant = tick()
+                    task.spawn(performCirclePlanting)
+                end
+            end)
+        else
+            print("🌱 自动种植已关闭")
+        end
+    end)
+
+    local radiusLabel = addLabel("种植半径: " .. plantRadius .. " 格")
+    addButton("半径 +2", Color3.fromRGB(60,180,60), function()
+        plantRadius = math.min(plantRadius + 2, 20)
+        radiusLabel.Text = "种植半径: " .. plantRadius .. " 格"
+    end)
+    addButton("半径 -2", Color3.fromRGB(180,60,60), function()
+        plantRadius = math.max(plantRadius - 2, 3)
+        radiusLabel.Text = "种植半径: " .. plantRadius .. " 格"
+    end)
+
+    local countLabel = addLabel("树苗数量: " .. plantCount .. " 棵")
+    addButton("数量 +4", Color3.fromRGB(60,180,60), function()
+        plantCount = math.min(plantCount + 4, 40)
+        countLabel.Text = "树苗数量: " .. plantCount .. " 棵"
+    end)
+    addButton("数量 -4", Color3.fromRGB(180,60,60), function()
+        plantCount = math.max(plantCount - 4, 4)
+        countLabel.Text = "树苗数量: " .. plantCount .. " 棵"
+    end)
+
+    addButton("🌱 立即种植一次", Color3.fromRGB(50,200,100), function()
+        task.spawn(performCirclePlanting)
+    end)
+
+    addDivider()
+    addLabel("💡 优化说明：光环检查间隔已降低，减少CPU占用")
+    addLabel("💡 伐木/杀戮/ESP 现在每 0.2~0.5 秒检测一次，不再每帧执行")
+
+    panel.CanvasSize = UDim2.new(0, 0, 0, #panel:GetChildren() * 32 + 20)
+end
+
+-- ============================================================
+--  面板：简介（完整版）
+-- ============================================================
+local function loadIntro()
+    clearPanel()
+    addTitle("📋 关于本脚本")
+
+    local card = Instance.new("Frame")
+    card.Parent = panel
+    card.Size = UDim2.new(1,-4,0,200)
+    card.Position = UDim2.new(0,2,0,#panel:GetChildren()*32+8)
+    card.BackgroundColor3 = Color3.fromRGB(20, 22, 40)
+    card.BackgroundTransparency = 0.5
+    card.BorderSizePixel = 1
+    card.BorderColor3 = Color3.fromRGB(30, 200, 255)
+    local cardCorner = Instance.new("UICorner")
+    cardCorner.Parent = card
+    cardCorner.CornerRadius = UDim.new(0,6)
+
+    local icon = Instance.new("TextLabel")
+    icon.Parent = card
+    icon.Size = UDim2.new(0, 60, 0, 60)
+    icon.Position = UDim2.new(0.5, -30, 0, 8)
+    icon.BackgroundTransparency = 1
+    icon.Text = "📜"
+    icon.TextSize = 40
+    icon.TextColor3 = Color3.fromRGB(255, 255, 255)
+    icon.Font = Enum.Font.GothamBold
+    icon.TextXAlignment = Enum.TextXAlignment.Center
+
+    local titleLbl = Instance.new("TextLabel")
+    titleLbl.Parent = card
+    titleLbl.Size = UDim2.new(1, 0, 0, 30)
+    titleLbl.Position = UDim2.new(0, 0, 0, 68)
+    titleLbl.BackgroundTransparency = 1
+    titleLbl.Text = "唐脚本 v5.0"
+    titleLbl.TextColor3 = Color3.fromRGB(30, 200, 255)
+    titleLbl.TextSize = 22
+    titleLbl.Font = Enum.Font.GothamBold
+    titleLbl.TextXAlignment = Enum.TextXAlignment.Center
+    titleLbl.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+    titleLbl.TextStrokeTransparency = 0.3
+
+    local line = Instance.new("Frame")
+    line.Parent = card
+    line.Size = UDim2.new(0.6, 0, 0, 1)
+    line.Position = UDim2.new(0.2, 0, 0, 100)
+    line.BackgroundColor3 = Color3.fromRGB(30, 200, 255)
+    line.BackgroundTransparency = 0.5
+    line.BorderSizePixel = 0
+
+    local authorLbl = Instance.new("TextLabel")
+    authorLbl.Parent = card
+    authorLbl.Size = UDim2.new(1, 0, 0, 22)
+    authorLbl.Position = UDim2.new(0, 0, 0, 108)
+    authorLbl.BackgroundTransparency = 1
+    authorLbl.Text = "👤 作者：kkcmjf"
+    authorLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+    authorLbl.TextSize = 14
+    authorLbl.Font = Enum.Font.Gotham
+    authorLbl.TextXAlignment = Enum.TextXAlignment.Center
+
+    local versionLbl = Instance.new("TextLabel")
+    versionLbl.Parent = card
+    versionLbl.Size = UDim2.new(1, 0, 0, 20)
+    versionLbl.Position = UDim2.new(0, 0, 0, 132)
+    versionLbl.BackgroundTransparency = 1
+    versionLbl.Text = "⚡ 支持：MM2 / Peta / 飞行 / 甩飞 / 僵尸塔 / 森林·99夜"
+    versionLbl.TextColor3 = Color3.fromRGB(200, 200, 200)
+    versionLbl.TextSize = 11
+    versionLbl.Font = Enum.Font.Gotham
+    versionLbl.TextXAlignment = Enum.TextXAlignment.Center
+
+    local tipLbl = Instance.new("TextLabel")
+    tipLbl.Parent = card
+    tipLbl.Size = UDim2.new(1, 0, 0, 18)
+    tipLbl.Position = UDim2.new(0, 0, 0, 155)
+    tipLbl.BackgroundTransparency = 1
+    tipLbl.Text = "💡 点击右上角 — 最小化 | + 展开 | ✕ 关闭"
+    tipLbl.TextColor3 = Color3.fromRGB(150, 180, 200)
+    tipLbl.TextSize = 10
+    tipLbl.Font = Enum.Font.Gotham
+    tipLbl.TextXAlignment = Enum.TextXAlignment.Center
+
+    local bottomLbl = Instance.new("TextLabel")
+    bottomLbl.Parent = card
+    bottomLbl.Size = UDim2.new(1, 0, 0, 16)
+    bottomLbl.Position = UDim2.new(0, 0, 0, 178)
+    bottomLbl.BackgroundTransparency = 1
+    bottomLbl.Text = "⚠️ 仅供学习交流使用，请勿用于非法用途"
+    bottomLbl.TextColor3 = Color3.fromRGB(255, 100, 100)
+    bottomLbl.TextSize = 10
+    bottomLbl.Font = Enum.Font.Gotham
+    bottomLbl.TextXAlignment = Enum.TextXAlignment.Center
+
+    panel.CanvasSize = UDim2.new(0, 0, 0, #panel:GetChildren() * 32 + 20)
+end
+
+-- ============================================================
+--  侧栏按钮事件绑定
+-- ============================================================
+local panelFunctions = {
+    loadGeneral,
+    loadMM2,
+    loadPeta,
+    loadFlight,
+    loadFlyOff,
+    loadZombieTower,
+    loadForest,
+    loadIntro
+}
+
+for i, btn in ipairs(btnList) do
+    btn.MouseButton1Click:Connect(function()
+        for _, b in ipairs(btnList) do
+            b.BackgroundColor3 = Color3.fromRGB(20,40,60)
+            b.BorderColor3 = Color3.fromRGB(50,50,70)
+        end
+        btn.BackgroundColor3 = Color3.fromRGB(30,200,255)
+        btn.BorderColor3 = Color3.fromRGB(30,200,255)
+        if panelFunctions[i] then
+            panelFunctions[i]()
         end
     end)
 end
 
-loadGeneral()
-
 -- ============================================================
---  启动动画结束后销毁并渐现主界面
+--  等待启动动画完成后再显示主界面（带弹出特效）
 -- ============================================================
-task.wait(3.8)
-running = false
-task.wait(0.2)
-splashGui:Destroy()
-
--- 主窗口显示并渐现控件
-mainFrame.Visible = false
-task.wait(0.1)
-
-mainFrame.Visible = true
-
--- 对文字和边框做渐现
-local function fadeInControls()
-    local tweens = {}
-    local function collect(obj)
-        if obj:IsA("GuiObject") then
-            if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
-                obj.TextTransparency = 1
-                local t = tweenService:Create(obj, TweenInfo.new(1.2, Enum.EasingStyle.Linear), {TextTransparency = 0})
-                table.insert(tweens, t)
-            end
-            if obj:IsA("ImageLabel") or obj:IsA("ImageButton") then
-                obj.ImageTransparency = 1
-                local t = tweenService:Create(obj, TweenInfo.new(1.2, Enum.EasingStyle.Linear), {ImageTransparency = 0})
-                table.insert(tweens, t)
-            end
-            for _, stroke in pairs(obj:GetChildren()) do
-                if stroke:IsA("UIStroke") then
-                    stroke.Transparency = 1
-                    local t = tweenService:Create(stroke, TweenInfo.new(1.2, Enum.EasingStyle.Linear), {Transparency = 0})
-                    table.insert(tweens, t)
-                end
-            end
+local function waitForSplashComplete()
+    while running do
+        local progress = fill.Size.X.Scale
+        if progress >= 1 then
+            break
         end
-        for _, child in pairs(obj:GetChildren()) do
-            collect(child)
-        end
+        task.wait(0.05)
     end
-    collect(mainFrame)
-    for _, tween in pairs(tweens) do
-        tween:Play()
-    end
+    task.wait(0.3)
 end
 
-fadeInControls()
-
-print("✅ 唐脚本 v5.0 完整加载成功！")
+task.spawn(function()
+    waitForSplashComplete()
+    loadGeneral()
+    
+    -- 设置初始状态：透明且缩小
+    mainFrame.BackgroundTransparency = 1
+    mainFrame.Size = UDim2.new(0, 400, 0, 250)
+    mainFrame.Position = UDim2.new(0.5, -200, 0.5, -125)
+    gui.Enabled = true
+    mainFrame.Visible = true
+    
+    -- 创建 Tween 动画（淡入 + 放大）
+    local tweenInfo = TweenInfo.new(
+        0.8,
+        Enum.EasingStyle.Quad,
+        Enum.EasingDirection.Out,
+        0,
+        false,
+        0
+    )
+    
+    local properties = {
+        BackgroundTransparency = 0.15,
+        Size = UDim2.new(0, 600, 0, 350),
+        Position = UDim2.new(0.5, -300, 0.5, -175)
+    }
+    
+    local tween = tweenService:Create(mainFrame, tweenInfo, properties)
+    tween:Play()
+    
+    tween.Completed:Connect(function()
+        splashGui:Destroy()
+        print("✅ 唐脚本 v5.0 已加载完成")
+    end)
+    
+    task.wait(2)
+    if splashGui and splashGui.Parent then
+        splashGui:Destroy()
+    end
+end)
